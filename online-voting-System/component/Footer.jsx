@@ -9,9 +9,9 @@ const Footer = () => {
                     <div className="flex flex-col md:flex-row justify-between items-center md:items-start text-center md:text-left space-y-6 md:space-y-0">
                         
                         {/* Logo and Name */}
-                        <div className="flex flex-col items-center md:items-start space-y-2">
-                            <img src="../src/assets/react.svg" alt="Logo" className="h-10 w-auto" />
-                            <span className="font-semibold text-white text-lg">Secure Vote</span>
+                        <div className="flex  items-center md:items-start space-y-2">
+                            <img src="../src/assets/NEBE LOGO-01.svg" alt="Logo" className="h-10 w-auto" />
+                            <span className="font-semibold text-white text-lg">NEBE Vote</span>
                         </div>
 
                         {/* Follow Us Section */}
