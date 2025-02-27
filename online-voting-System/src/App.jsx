@@ -14,25 +14,12 @@
 // }
 
 // export default App;
-
-
-
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import HomePage from "./page/HomePage"; // Your HomePage component
-import LoginPage from "./page/LoginPage"; // Your LoginPage component
+import Route from "./page/RoutingPages";
 
 const App = () => {
   return (
-    <Router>
-      <Routes>
-        {/* Home Page Route */}
-        <Route path="/" element={<HomePage />} />
-
-        {/* Login Page Route */}
-        <Route path="/login" element={<LoginPage />} />
-      </Routes>
-    </Router>
+    <Route/>
   );
 };
 
