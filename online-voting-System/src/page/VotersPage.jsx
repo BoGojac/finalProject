@@ -2,9 +2,9 @@
 
 const VotersPage = () => {
     return (
-        <div>
-            
-        </div>
+        <div className="flex h-screen">
+       <h1>Votes page</h1>
+      </div>
     );
 }
 

@@ -1,3 +1,4 @@
+import Layout from '../component/Layout';
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import AdminPage from './AdminPage';
 import BoardManagersPage from './BoardManagersPage';
@@ -12,30 +13,32 @@ const RoutingPages = () => {
 	return (
 		<div>
 			<Router>
+			
 				<Routes>
+				   
 					{/* Home Page Route */}
 					<Route path="/" element={<HomePage />} />
 					{/* Admin Page Route */}
-					<Route path="/Admin" element={<AdminPage />} />
+					<Route path="/Admin" element={<Layout><AdminPage /></Layout>} />
 					{/* Board Managers Page Route */}
 					<Route
 						path="/BoardManagers"
-						element={<BoardManagersPage />}
+						element={<Layout><BoardManagersPage /></Layout>}
 					/>
 					{/* Candidates Page Route */}
-					<Route path="/Candidates" element={<CandidatesPage />} />
+					<Route path="/Candidates" element={<Layout><CandidatesPage /></Layout>} />
 					{/* Constituency managers Page Route */}
 					<Route
 						path="/ConstituencyManagers"
-						element={<ConstituencyPage />}
+						element={<Layout><ConstituencyPage /></Layout>}
 					/>
 					{/* Polling Station Page Route */}
 					<Route
 						path="/PollingStation"
-						element={<PollingStationPage />}
+						element={<Layout><PollingStationPage /></Layout>}
 					/>
 					{/* Voters Page Route */}
-					<Route path="/VotersPage" element={<VotersPage />} />
+					<Route path="/VotersPage" element={<Layout><VotersPage /></Layout>} />
 					{/* Login Page Route */}
 					<Route path="/login" element={<LoginPage />} />
 				</Routes>

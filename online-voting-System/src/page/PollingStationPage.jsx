@@ -2,9 +2,9 @@
 
 const PollingStationPage = () => {
     return (
-        <div>
-            
-        </div>
+        <div className="flex h-screen">
+        <h1>Pollin-Station page</h1>
+      </div>
     );
 }
 

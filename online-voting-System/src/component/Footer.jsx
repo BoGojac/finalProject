@@ -10,7 +10,7 @@ const Footer = () => {
                         
                         {/* Logo and Name */}
                         <div className="flex flex-col items-center md:items-start space-y-2">
-                            <img src="../src/assets/NEBE LOGO-01.svg" alt="Logo" className="h-10 w-auto" />
+                            <img src="../src/assets/NEBELOGO.svg" alt="Logo" className="h-10 w-auto" />
                             <span className="font-semibold text-white text-lg">NEBE Vote</span>
                         </div>
 

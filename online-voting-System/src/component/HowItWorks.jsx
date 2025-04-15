@@ -1,5 +1,6 @@
 // import React from 'react';
 import {ShieldCheck,LaptopMinimalCheck,Users, ChartBar } from 'lucide-react'
+
 const HowItWorks = () => {
     return (
         <div>

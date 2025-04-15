@@ -2,9 +2,9 @@
 
 const CandidatesPage = () => {
     return (
-        <div>
-            
-        </div>
+        <div className="flex h-screen">
+          <h1>Candidates Page</h1>
+      </div>
     );
 }
 

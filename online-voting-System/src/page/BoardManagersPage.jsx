@@ -2,8 +2,8 @@
 
 const BoardManagersPage = () => {
     return (
-        <div>
-            
+        <div className="flex h-screen">
+        <h1>Board managers Page</h1>
         </div>
     );
 }

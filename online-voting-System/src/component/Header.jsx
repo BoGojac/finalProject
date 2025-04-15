@@ -11,7 +11,7 @@ const Header = () => {
             <div className="container mx-auto flex items-center justify-between py-4 px-6">
                 {/* Logo and Title */}
                 <div className='flex items-center'>
-                    <img src="../src/assets/NEBE LOGO-01.svg" alt="Logo" className="h-8 w-10 rounded-full" />
+                    <img src="../src/assets/NEBELOGO.svg" alt="Logo" className="h-8 w-10 rounded-full" />
                     <h1 className="text-white text-lg font-bold ml-4">NEBE Vote</h1>
                 </div>
                 

@@ -56,16 +56,16 @@ const LoginPage = () => {
 			];
 			const pass = '123456789'; // Updated static password
 
-			console.log('Entered Password:', formData.password); // Debug log
-			console.log('Expected Password:', pass); // Debug log
+			// console.log('Entered Password:', formData.password); // Debug log
+			// console.log('Expected Password:', pass); // Debug log
 
 			if (formData.password === pass) {
 				switch (formData.username) {
 					case UNM[0]:
-						navigate('/Admin Dashboard');
+						navigate('/Admin');
 						break;
 					case UNM[1]:
-						navigate('/ConstituencyManagers Dashboard');
+						navigate('/ConstituencyManagers');
 						break;
 					case UNM[2]:
 						navigate('/PollingStation');
