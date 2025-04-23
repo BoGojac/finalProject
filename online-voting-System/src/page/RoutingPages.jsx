@@ -8,6 +8,9 @@ import HomePage from './HomePage'; // Your HomePage component
 import LoginPage from './LoginPage'; // Your LoginPage component
 import PollingStationPage from './PollingStationPage';
 import VotersPage from './VotersPage';
+import UsersList from "../component/UsersList";
+import OverrideHistory from '../component/OverrideHistory';
+import AdminPageCards from '../component/ui/AdminPageCards';
 
 const RoutingPages = () => {
 	return (
@@ -15,11 +18,15 @@ const RoutingPages = () => {
 			<Router>
 			
 				<Routes>
-				   
+				    
 					{/* Home Page Route */}
 					<Route path="/" element={<HomePage />} />
 					{/* Admin Page Route */}
-					<Route path="/Admin" element={<Layout><AdminPage /></Layout>} />
+					<Route path="/Admin" element={<Layout><AdminPage /></Layout>}>
+						<Route index element={<AdminPageCards />} />
+						<Route path="manage-user" element={<UsersList />} />
+						<Route path="view-override-history" element={<OverrideHistory />} />
+					</Route> 
 					{/* Board Managers Page Route */}
 					<Route
 						path="/BoardManagers"

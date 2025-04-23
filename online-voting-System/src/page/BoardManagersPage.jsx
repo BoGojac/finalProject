@@ -3,7 +3,7 @@
 const BoardManagersPage = () => {
     return (
         <div className="flex h-screen">
-        <h1>Board managers Page</h1>
+        <h2 className="text-2xl font-bold mb-6">BoardManager Dashboard</h2>
         </div>
     );
 }

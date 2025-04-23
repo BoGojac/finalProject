@@ -3,7 +3,7 @@
 const CandidatesPage = () => {
     return (
         <div className="flex h-screen">
-          <h1>Candidates Page</h1>
+          <h2 className="text-2xl font-bold mb-6">Candidates Dashboard</h2>
       </div>
     );
 }

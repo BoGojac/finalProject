@@ -2,8 +2,8 @@
 const ConstituencyPage = () => {
     return (
         <div className="flex h-screen">
-       <h1>constituency page</h1>
-      </div>
+            <h2 className="text-2xl font-bold mb-6">Constituency Dashboard</h2>
+        </div>
     );
 }
 

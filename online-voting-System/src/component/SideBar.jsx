@@ -6,7 +6,7 @@ import {
 	CalendarRange,
 	FileText,
 	Home,
-	// ImageOff,
+	LayoutDashboard,
 	List,
 	Map,
 	PieChart,
@@ -16,19 +16,19 @@ import {
 	UserSearch,
 	Vote,
 } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
-// ImageOff;
-import logo from '../assets/NEBELOGO.svg';
 import PropTypes from 'prop-types';
-//import { ChevronLeft, ChevronRight } from 'lucide-react';
-
-
-
+import { Link, useLocation } from 'react-router-dom';
+import logo from '../assets/NEBELOGO.svg';
 
 const Sidebar = ({ sidebarOpen }) => {
 	const { pathname } = useLocation();
 
 	const adminLinks = [
+		{
+			to: '/admin',
+			label: 'Dashboard',
+			icon: <LayoutDashboard size={18} />,
+		},
 		{
 			to: '/admin/manage-user',
 			label: 'Manage User',
@@ -43,6 +43,11 @@ const Sidebar = ({ sidebarOpen }) => {
 	];
 
 	const constituencyLinks = [
+		{
+			to: '/constituency',
+			label: 'Dashboard',
+			icon: <LayoutDashboard size={18} />,
+		},
 		{
 			to: '/constituency/register-candidate',
 			label: 'Register Candidate',
@@ -71,6 +76,11 @@ const Sidebar = ({ sidebarOpen }) => {
 	];
 
 	const boardManagerLinks = [
+		{
+			to: '/boardmanagers',
+			label: 'Dashboard',
+			icon: <LayoutDashboard size={18} />,
+		},
 		{
 			to: '/boardmanagers/create-constituency',
 			label: 'Create Constituency',
@@ -125,6 +135,11 @@ const Sidebar = ({ sidebarOpen }) => {
 
 	const pollingStationLinks = [
 		{
+			to: '/pollingstation',
+			label: 'Dashboard',
+			icon: <LayoutDashboard size={18} />,
+		},
+		{
 			to: '/pollingstation/register-voter',
 			label: 'Register Voter',
 			icon: <UserPlus size={18} />, // Add user action
@@ -153,6 +168,11 @@ const Sidebar = ({ sidebarOpen }) => {
 
 	const votersLinks = [
 		{
+			to: '/voters',
+			label: 'Dashboard',
+			icon: <LayoutDashboard size={18} />,
+		},
+		{
 			to: '/voters/view-candidates',
 			label: 'View Candidates',
 			icon: <UserSearch size={18} />, // Explore candidates
@@ -160,7 +180,7 @@ const Sidebar = ({ sidebarOpen }) => {
 		{
 			to: '/voters/view-candidates',
 			label: 'Vote',
-			icon: <Vote size={18}/>, // Explore candidates
+			icon: <Vote size={18} />, // Explore candidates
 		},
 		{
 			to: '/voters/view-voters',
@@ -180,6 +200,11 @@ const Sidebar = ({ sidebarOpen }) => {
 	];
 
 	const candidatesLinks = [
+		{
+			to: '/candidates',
+			label: 'Dashboard',
+			icon: <LayoutDashboard size={18} />,
+		},
 		{
 			to: '/candidates/view-voters',
 			label: 'View Voters',
@@ -217,51 +242,51 @@ const Sidebar = ({ sidebarOpen }) => {
 		: [];
 
 	return (
-		
-			<aside
-			  className={`transition-all duration-300 ${
+		<aside
+			className={`transition-all duration-300 ${
 				sidebarOpen ? 'w-60' : 'w-16'
-			  } h-screen text-white flex flex-col p-4 overflow-y-auto`}
-			  style={{ backgroundColor: 'rgb(22, 53, 80)' }}
-			>
-			  {/* Logo Section */}
-			  <div className="flex flex-col items-center mb-4 mt-2">
+			} h-screen text-white flex flex-col p-4 overflow-y-auto`}
+			style={{ backgroundColor: 'rgb(22, 53, 80)' }}
+		>
+			{/* Logo Section */}
+			<div className="flex flex-col items-center mb-4 mt-2">
 				<div className="flex items-center">
-				  <img src={logo} alt="Logo" className={`transition-all duration-300 ${sidebarOpen ? 'h-15 w-30' : 'h-10 w-10'}`} />
+					<img
+						src={logo}
+						alt="Logo"
+						className={`transition-all duration-300 ${
+							sidebarOpen ? 'h-15 w-30' : 'h-10 w-10'
+						}`}
+					/>
 				</div>
 				<div className="w-full mt-4">
-				  <hr className="border-gray-600" />
+					<hr className="border-gray-600" />
 				</div>
-			  </div>
-		
-			  {/* Navigation */}
-			  <div className="flex flex-col gap-2 mt-4">
+			</div>
+
+			{/* Navigation */}
+			<div className="flex flex-col gap-2 mt-4">
 				<nav>
-				  {linksToRender.map(({ to, label, icon }) => (
-					<Link
-					  key={to}
-					  to={to}
-					  className={`flex items-center gap-3 p-3 rounded hover:bg-blue-700 transition-all duration-300 ${
-						pathname === to ? 'bg-blue-700' : ''
-					  }`}
-					>
-					  {icon}
-					  {sidebarOpen && <span className="text-sm">{label}</span>}
-					</Link>
-				  ))}
+					{linksToRender.map(({ to, label, icon }) => (
+						<Link
+							key={to}
+							to={to}
+							className={`flex items-center gap-3 p-3 rounded hover:bg-blue-700 transition-all duration-300 ${
+								pathname === to ? '' : ''
+							}`}
+						>
+							{icon}
+							{sidebarOpen && <span className="text-sm">{label}</span>}
+						</Link>
+					))}
 				</nav>
-			  </div>
-			</aside>
+			</div>
+		</aside>
 	);
 };
 
-
-
-
-
-
 Sidebar.propTypes = {
-  	sidebarOpen: PropTypes.bool.isRequired,
+	sidebarOpen: PropTypes.bool.isRequired,
 };
 
 export default Sidebar;
