@@ -1,17 +1,20 @@
-import Layout from '../component/Layout';
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import Layout from '../component/Layout';
+import OverrideHistory from '../component/OverrideHistory';
+import AdminPageCards from '../component/ui/AdminPageCards';
+import UsersList from "../component/UsersList";
 import AdminPage from './AdminPage';
 import BoardManagersPage from './BoardManagersPage';
 import CandidatesPage from './CandidatesPage';
 import ConstituencyPage from './ConstituencyPage';
-import HomePage from './HomePage'; // Your HomePage component
-import LoginPage from './LoginPage'; // Your LoginPage component
+import HomePage from './HomePage'; 
+import LoginPage from './LoginPage'; 
 import PollingStationPage from './PollingStationPage';
 import VotersPage from './VotersPage';
-import UsersList from "../component/UsersList";
-import OverrideHistory from '../component/OverrideHistory';
-import AdminPageCards from '../component/ui/AdminPageCards';
-
+import BoardManagerPageCards from '../component/ui/BoardManagersCards';
+import ConstituencyList from '../component/ListOfConsituency';
+import PollingStationList from '../component/ListOfPollingStation';
+import PartyList from '../component/ListOfParty';
 const RoutingPages = () => {
 	return (
 		<div>
@@ -25,13 +28,17 @@ const RoutingPages = () => {
 					<Route path="/Admin" element={<Layout><AdminPage /></Layout>}>
 						<Route index element={<AdminPageCards />} />
 						<Route path="manage-user" element={<UsersList />} />
-						<Route path="view-override-history" element={<OverrideHistory />} />
+						<Route path="BM-view-override-history" element={<OverrideHistory />} />
 					</Route> 
 					{/* Board Managers Page Route */}
-					<Route
-						path="/BoardManagers"
-						element={<Layout><BoardManagersPage /></Layout>}
-					/>
+					<Route path="/BoardManagers" 
+					element= {<Layout><BoardManagersPage /></Layout>}>
+						<Route index element={<BoardManagerPageCards />} />
+						<Route path="create-constituency" element={<ConstituencyList />} />
+						<Route path="create-polling-station" element={<PollingStationList />} />
+						<Route path="register-party" element={<PartyList />} />
+						<Route path="view-override-history" element={<OverrideHistory />} />
+                    </Route>
 					{/* Candidates Page Route */}
 					<Route path="/Candidates" element={<Layout><CandidatesPage /></Layout>} />
 					{/* Constituency managers Page Route */}

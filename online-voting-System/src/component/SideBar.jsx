@@ -15,6 +15,7 @@ import {
 	Users,
 	UserSearch,
 	Vote,
+	NotebookPen,
 } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { Link, useLocation } from 'react-router-dom';
@@ -92,6 +93,11 @@ const Sidebar = ({ sidebarOpen }) => {
 			icon: <Home size={18} />, // Represents a physical location
 		},
 		{
+			to: '/boardmanagers/register-party',
+			label: 'Register Party ',
+			icon: <NotebookPen size={18} />,
+		},
+		{
 			to: '/boardmanagers/set-registration-timespan',
 			label: 'Set Registration Timespan',
 			icon: <CalendarRange size={18} />, // Indicates date ranges
@@ -117,12 +123,12 @@ const Sidebar = ({ sidebarOpen }) => {
 			icon: <PieChart size={18} />, // Better for analytics
 		},
 		{
-			to: '/admin/override-history',
+			to: '/boardmanagers/override-history',
 			label: 'Override History',
 			icon: <FileText size={18} />,
 		},
 		{
-			to: '/admin/view-override-history',
+			to: '/boardmanagers/view-override-history',
 			label: 'View Override History',
 			icon: <FileText size={18} />,
 		},
