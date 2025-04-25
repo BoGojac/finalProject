@@ -13,6 +13,7 @@ import {
 	Settings,
 	UserPlus,
 	Users,
+	Undo2,
 	UserSearch,
 	Vote,
 	NotebookPen,
@@ -123,9 +124,9 @@ const Sidebar = ({ sidebarOpen }) => {
 			icon: <PieChart size={18} />, // Better for analytics
 		},
 		{
-			to: '/boardmanagers/override-history',
-			label: 'Override History',
-			icon: <FileText size={18} />,
+			to: '/boardmanagers/override-voting',
+			label: 'Override Voting',
+			icon: <Undo2 size={18} />,
 		},
 		{
 			to: '/boardmanagers/view-override-history',
