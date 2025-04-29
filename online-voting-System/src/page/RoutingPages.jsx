@@ -15,6 +15,11 @@ import BoardManagerPageCards from '../component/ui/BoardManagersCards';
 import ConstituencyList from '../component/ListOfConsituency';
 import PollingStationList from '../component/ListOfPollingStation';
 import PartyList from '../component/ListOfParty';
+import CandidatesPageCards from '../component/ui/CandidatesPageCards';
+import ServiceUnavailable from '../component/ServiceUnavailable';
+import SetVotingDate from '../component/SetVotingDate';
+import SetRegistrationTimespan from '../component/SetRegistrationTimespan';
+import OverrideVoting from '../component/OverrideVoting';
 const RoutingPages = () => {
 	return (
 		<div>
@@ -28,19 +33,38 @@ const RoutingPages = () => {
 					<Route path="/Admin" element={<Layout><AdminPage /></Layout>}>
 						<Route index element={<AdminPageCards />} />
 						<Route path="manage-user" element={<UsersList />} />
-						<Route path="BM-view-override-history" element={<OverrideHistory />} />
+						<Route path="view-override-history" element={<OverrideHistory />} />
+						<Route path="/Admin/analytics" element= {<ServiceUnavailable/>}/>
+						<Route path="/Admin/database-management" element= {<ServiceUnavailable/>}/>
 					</Route> 
 					{/* Board Managers Page Route */}
-					<Route path="/BoardManagers" 
+					{/* <Route path="/BoardManagers" 
 					element= {<Layout><BoardManagersPage /></Layout>}>
 						<Route index element={<BoardManagerPageCards />} />
 						<Route path="create-constituency" element={<ConstituencyList />} />
 						<Route path="create-polling-station" element={<PollingStationList />} />
 						<Route path="register-party" element={<PartyList />} />
 						<Route path="view-override-history" element={<OverrideHistory />} />
-                    </Route>
+                    </Route> */}
+
+					<Route path="/BoardManagers" element={<Layout><BoardManagersPage /></Layout>}>
+					<Route index element={<BoardManagerPageCards />} />
+					<Route path="create-constituency" element={<ConstituencyList />} />
+					<Route path="create-polling-station" element={<PollingStationList />} />
+					<Route path="register-party" element={<PartyList />} />
+					<Route path="set-registration-timespan" element={<SetRegistrationTimespan />} />
+					<Route path="set-voting-date" element={<SetVotingDate />} />
+					<Route path="override-voting" element={<OverrideVoting />} />
+					<Route path="view-override-history" element={<OverrideHistory />} />
+					</Route>
 					{/* Candidates Page Route */}
-					<Route path="/Candidates" element={<Layout><CandidatesPage /></Layout>} />
+					<Route path="/Candidates" element={<Layout><CandidatesPage /></Layout>} > 
+						<Route index element={<CandidatesPageCards />} />
+						<Route path="create-constituency" element={<ConstituencyList />} />
+						<Route path="create-polling-station" element={<PollingStationList />} />
+						<Route path="register-party" element={<PartyList />} />
+					
+					</Route>
 					{/* Constituency managers Page Route */}
 					<Route
 						path="/ConstituencyManagers"

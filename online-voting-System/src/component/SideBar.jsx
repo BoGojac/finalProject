@@ -213,13 +213,13 @@ const Sidebar = ({ sidebarOpen }) => {
 			icon: <LayoutDashboard size={18} />,
 		},
 		{
-			to: '/candidates/view-voters',
-			label: 'View Voters',
+			to: '/candidates/view-candidates',
+			label: 'View Candidates',
 			icon: <List size={18} />,
 		},
 		{
-			to: '/candidates/view-candidates',
-			label: 'View Candidates',
+			to: '/candidates/view-voters',
+			label: 'View Voters',
 			icon: <List size={18} />,
 		},
 		{
@@ -252,7 +252,7 @@ const Sidebar = ({ sidebarOpen }) => {
 		<aside
 			className={`transition-all duration-300 ${
 				sidebarOpen ? 'w-60' : 'w-16'
-			} h-screen text-white flex flex-col p-4 overflow-y-auto`}
+			} h-svh text-white flex flex-col p-4 overflow-y-auto`}
 			style={{ backgroundColor: 'rgb(22, 53, 80)' }}
 		>
 			{/* Logo Section */}

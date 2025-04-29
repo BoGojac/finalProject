@@ -1,15 +1,14 @@
 //import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Home,
-  Calendar,
-  Clock,
-  Undo2,
-  NotebookPen,
-  Map,
+  List,
+  // Calendar,
+  // Clock,
+  // Undo2,
+  AlertCircle,
 } from "lucide-react";
 
-const BoardManagerPageCards = () => {
+const CandidatesPageCards = () => {
   const navigate = useNavigate();
 
   // Static data - replace with API calls later
@@ -21,7 +20,7 @@ const BoardManagerPageCards = () => {
 
   const cards = [
     {
-      title: "Create Constituency",
+      title: "View Candidates",
       description: (
         <div className="space-y-1">
           <p>Establish new electoral constituencies</p>
@@ -30,11 +29,12 @@ const BoardManagerPageCards = () => {
           </div>
         </div>
       ),
-      icon: <Map className="text-blue-600" size={28} />,
-      path: "/boardmanagers/create-constituency"
+      icon: <List className="text-blue-600" size={28} />,
+      path: '/candidates/view-candidates',
+
     },
     {
-      title: "Create Polling Station",
+      title: "View Voters",
       description: (
         <div className="space-y-1">
           <p>Set up new voting locations</p>
@@ -43,11 +43,11 @@ const BoardManagerPageCards = () => {
           </div>
         </div>
       ),
-      icon: <Home className="text-green-600" size={28} />,
-      path: "/boardmanagers/create-polling-station"
+      icon: <List className="text-green-600" size={28} />,
+      path: '/candidates/view-voters',
     },
     {
-      title: "Register Party",
+      title: "Complain Submission",
       description: (
         <div className="space-y-1">
           <p>Register new political parties</p>
@@ -56,26 +56,8 @@ const BoardManagerPageCards = () => {
           </div>
         </div>
       ),
-      icon: <NotebookPen className="text-purple-600" size={28}/>,
-      path: "/boardmanagers/register-party"
-    },
-    {
-      title: "Set Registration Period",
-      description: "Define voter registration timeframe",
-      icon: <Clock className="text-amber-600" size={28} />,
-      path: "/boardmanagers/set-registration-timespan"
-    },
-    {
-      title: "Set Voting Date",
-      description: "Establish election date",
-      icon: <Calendar className="text-red-600" size={28} />,
-      path: "/boardmanagers/set-voting-date"
-    },
-    {
-      title: "Override Voting",
-      description: "Abort voting permissions",
-      icon: <Undo2 className="text-yellow-600" size={28}/>,
-      path: "/boardmanagers/override-voting"
+      icon: <AlertCircle className="text-purple-600" size={28}/>,
+      path: '/candidates/complain',
     },
   ];
 
@@ -106,4 +88,4 @@ const BoardManagerPageCards = () => {
   );
 };
 
-export default BoardManagerPageCards;
+export default CandidatesPageCards;
