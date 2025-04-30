@@ -1,10 +1,9 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RefreshCcw, LogOut, User } from 'lucide-react';
 import { useLocation, Link } from 'react-router-dom';
 import { useState } from 'react';
 import Avatar from './Avatar';
 import profilePic from '../assets/proP.jpg';
 import PropTypes from 'prop-types';
-import { LogOut, User } from 'lucide-react';
 
 const NavBar = ({ toggleSidebar, sidebarOpen }) => {
   const { pathname } = useLocation();
@@ -91,6 +90,13 @@ const NavBar = ({ toggleSidebar, sidebarOpen }) => {
                 <User className="w-4 h-4 mr-3" />
                 name
               </p>
+              <Link
+                to="/logout"
+                className="flex items-center px-4 py-2 text-sm text-purple-500 hover:text-purple-700"
+              >
+                <RefreshCcw className="w-4 h-4 mr-3"/>
+                Change Password
+              </Link>
               <Link
                 to="/logout"
                 className="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-200"
