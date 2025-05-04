@@ -57,7 +57,7 @@ const CandidatesPageCards = () => {
         </div>
       ),
       icon: <AlertCircle className="text-purple-600" size={28}/>,
-      path: '/candidates/complain',
+      path: '/Candidates/complain',
     },
   ];
 

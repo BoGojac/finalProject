@@ -170,7 +170,7 @@ const CreatePartyForm = ({ isOpen, onClose, onSubmit }) => {
 
           <button
             type="submit"
-            className="px-4 py-2 bg-indigo-600 rounded-md text-sm font-medium text-white hover:bg-indigo-700"
+            className="px-4 py-2 bg-purple-800 rounded-md text-sm font-medium text-white hover:bg-purple-600"
           >
             Register Party
           </button>

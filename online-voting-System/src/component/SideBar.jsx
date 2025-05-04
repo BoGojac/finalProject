@@ -9,8 +9,7 @@ import {
 	LayoutDashboard,
 	List,
 	Map,
-	PieChart,
-	Settings,
+	// Settings,
 	UserPlus,
 	Users,
 	Undo2,
@@ -41,40 +40,35 @@ const Sidebar = ({ sidebarOpen }) => {
 			label: 'View Override History',
 			icon: <FileText size={18} />,
 		},
-		{ to: '/admin/Setting', label: 'Setting', icon: <Settings size={18} /> },
+		// { to: '/admin/Setting', label: 'Setting', icon: <Settings size={18} /> },
 	];
 
 	const constituencyLinks = [
 		{
-			to: '/constituency',
+			to: '/ConstituencyManagers',
 			label: 'Dashboard',
 			icon: <LayoutDashboard size={18} />,
 		},
 		{
-			to: '/constituency/register-candidate',
+			to: '/ConstituencyManagers/register-candidate',
 			label: 'Register Candidate',
 			icon: <UserPlus size={18} />,
 		},
 		{
-			to: '/constituency/view-candidates',
-			label: 'View Candidates',
-			icon: <List size={18} />,
-		},
-		{
-			to: '/constituency/view-voters',
+			to: '/ConstituencyManagers/view-voters',
 			label: 'View Voters',
 			icon: <List size={18} />,
 		},
 		{
-			to: '/constituency/result',
+			to: '/ConstituencyManagers/result',
 			label: 'View Result',
 			icon: <BarChart2 size={18} />,
 		},
-		{
-			to: '/constituency/setting',
-			label: 'Setting',
-			icon: <Settings size={18} />,
-		},
+		// {
+		// 	to: '/ConstituencyManagers/setting',
+		// 	label: 'Setting',
+		// 	icon: <Settings size={18} />,
+		// },
 	];
 
 	const boardManagerLinks = [
@@ -121,7 +115,7 @@ const Sidebar = ({ sidebarOpen }) => {
 		{
 			to: '/boardmanagers/result',
 			label: 'View Result',
-			icon: <PieChart size={18} />, // Better for analytics
+			icon: <BarChart2 size={18} />, // Better for analytics
 		},
 		{
 			to: '/boardmanagers/override-voting',
@@ -133,11 +127,11 @@ const Sidebar = ({ sidebarOpen }) => {
 			label: 'View Override History',
 			icon: <FileText size={18} />,
 		},
-		{
-			to: '/boardmanagers/setting',
-			label: 'Setting',
-			icon: <Settings size={18} />, // Perfect as-is
-		},
+		// {
+		// 	to: '/boardmanagers/setting',
+		// 	label: 'Setting',
+		// 	icon: <Settings size={18} />, // Perfect as-is
+		// },
 	];
 
 	const pollingStationLinks = [
@@ -152,11 +146,6 @@ const Sidebar = ({ sidebarOpen }) => {
 			icon: <UserPlus size={18} />, // Add user action
 		},
 		{
-			to: '/pollingstation/view-voters',
-			label: 'View Voters',
-			icon: <List size={18} />, // List representation
-		},
-		{
 			to: '/pollingstation/view-candidates',
 			label: 'View Candidates',
 			icon: <List size={18} />, // Searching/inspecting
@@ -166,11 +155,11 @@ const Sidebar = ({ sidebarOpen }) => {
 			label: 'View Result',
 			icon: <BarChart2 size={18} />, // Data visualization
 		},
-		{
-			to: '/pollingstation/setting',
-			label: 'Setting',
-			icon: <Settings size={18} />,
-		},
+		// {
+		// 	to: '/pollingstation/setting',
+		// 	label: 'Setting',
+		// 	icon: <Settings size={18} />,
+		// },
 	];
 
 	const votersLinks = [
@@ -197,13 +186,13 @@ const Sidebar = ({ sidebarOpen }) => {
 		{
 			to: '/voters/result',
 			label: 'View Result',
-			icon: <PieChart size={18} />, // Results visualization
+			icon: <BarChart2 size={18} />, // Results visualization
 		},
-		{
-			to: '/voters/setting',
-			label: 'Setting',
-			icon: <Settings size={18} />,
-		},
+		// {
+		// 	to: '/voters/setting',
+		// 	label: 'Setting',
+		// 	icon: <Settings size={18} />,
+		// },
 	];
 
 	const candidatesLinks = [
@@ -213,24 +202,24 @@ const Sidebar = ({ sidebarOpen }) => {
 			icon: <LayoutDashboard size={18} />,
 		},
 		{
-			to: '/candidates/view-candidates',
+			to: '/Candidates/view-candidates',
 			label: 'View Candidates',
 			icon: <List size={18} />,
 		},
 		{
-			to: '/candidates/view-voters',
+			to: '/Candidates/view-voters',
 			label: 'View Voters',
 			icon: <List size={18} />,
 		},
 		{
-			to: '/candidates/complain',
-			label: 'Complain Submission',
-			icon: <AlertCircle size={18} />, // Indicates an issue
+			to: '/Candidates/result',
+			label: 'View Result',
+			icon: <BarChart2 size={18} />, // Results visualization
 		},
 		{
-			to: '/candidates/setting', // Fixed typo in "candiadtes"
-			label: 'Setting',
-			icon: <Settings size={18} />,
+			to: '/Candidates/complain',
+			label: 'Complain Submission',
+			icon: <AlertCircle size={18} />, // Indicates an issue
 		},
 	];
 
