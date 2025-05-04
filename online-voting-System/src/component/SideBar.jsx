@@ -1,4 +1,6 @@
-// import React from 'react';
+import PropTypes from 'prop-types';
+import { Link, useLocation } from 'react-router-dom';
+import logo from '../assets/NEBELOGO.svg';
 import {
 	AlertCircle,
 	BarChart2,
@@ -17,12 +19,8 @@ import {
 	Vote,
 	NotebookPen,
 } from 'lucide-react';
-import PropTypes from 'prop-types';
-import { Link, useLocation } from 'react-router-dom';
-import logo from '../assets/NEBELOGO.svg';
-
-const Sidebar = ({ sidebarOpen }) => {
-	const { pathname } = useLocation();
+const Sidebar = ({ sidebarOpen, isMobile, toggleSidebar }) => {
+    const { pathname } = useLocation();
 
 	const adminLinks = [
 		{
@@ -237,52 +235,65 @@ const Sidebar = ({ sidebarOpen }) => {
 		? candidatesLinks
 		: [];
 
-	return (
-		<aside
-			className={`transition-all duration-300 ${
-				sidebarOpen ? 'w-60' : 'w-16'
-			} h-svh text-white flex flex-col p-4 overflow-y-auto`}
-			style={{ backgroundColor: 'rgb(22, 53, 80)' }}
-		>
-			{/* Logo Section */}
-			<div className="flex flex-col items-center mb-4 mt-2">
-				<div className="flex items-center">
-					<img
-						src={logo}
-						alt="Logo"
-						className={`transition-all duration-300 ${
-							sidebarOpen ? 'h-15 w-30' : 'h-10 w-10'
-						}`}
-					/>
-				</div>
-				<div className="w-full mt-4">
-					<hr className="border-gray-600" />
-				</div>
-			</div>
+  return (
+    <>
+      {/* Overlay for mobile */}
+      {isMobile && sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={toggleSidebar}
+        />
+      )}
 
-			{/* Navigation */}
-			<div className="flex flex-col gap-2 mt-4">
-				<nav>
-					{linksToRender.map(({ to, label, icon }) => (
-						<Link
-							key={to}
-							to={to}
-							className={`flex items-center gap-3 p-3 rounded hover:bg-blue-700 transition-all duration-300 ${
-								pathname === to ? '' : ''
-							}`}
-						>
-							{icon}
-							{sidebarOpen && <span className="text-sm">{label}</span>}
-						</Link>
-					))}
-				</nav>
-			</div>
-		</aside>
-	);
+      <aside
+        className={`fixed md:relative z-50 transition-all duration-300 ${
+          sidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0 md:w-20'
+        } h-full text-white flex flex-col p-4`}
+        style={{ backgroundColor: 'rgb(22, 53, 80)' }}
+      >
+        {/* Logo Section */}
+        <div className="flex flex-col items-center mb-4 mt-2">
+          <div className="flex items-center">
+            <img
+              src={logo}
+              alt="Logo"
+              className={`transition-all duration-300 ${
+                sidebarOpen ? 'h-12 w-auto' : 'h-10 w-10'
+              }`}
+            />
+          </div>
+          <div className="w-full mt-4">
+            <hr className="border-gray-600" />
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <div className="flex-1 overflow-y-auto">
+          <nav>
+            {linksToRender.map(({ to, label, icon }) => (
+              <Link
+                key={to}
+                to={to}
+                className={`flex items-center gap-3 p-3 rounded hover:bg-blue-700 transition-all duration-300 ${
+                  pathname === to ? 'bg-blue-800' : ''
+                }`}
+                onClick={isMobile ? toggleSidebar : undefined}
+              >
+                <span className="flex-shrink-0">{icon}</span>
+                {sidebarOpen && <span className="text-sm truncate">{label}</span>}
+              </Link>
+            ))}
+          </nav>
+        </div>
+      </aside>
+    </>
+  );
 };
 
 Sidebar.propTypes = {
-	sidebarOpen: PropTypes.bool.isRequired,
+  sidebarOpen: PropTypes.bool.isRequired,
+  isMobile: PropTypes.bool.isRequired,
+  toggleSidebar: PropTypes.func.isRequired,
 };
 
 export default Sidebar;
