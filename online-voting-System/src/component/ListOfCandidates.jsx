@@ -12,9 +12,29 @@ const CandidateList = () => {
       registration_date: '1/12/1996', 
       birth_date: '10/30/1987', 
       disability: 'Visual Impairment', 
-      duration_of_residence: ''
+      duration_of_residence: '',
+      status: 'active'
     },
-    // ... other candidate data
+    { 
+      id: 2, 
+      name: 'Adugan Olani Geleta', 
+      gender: 'Male', 
+      registration_date: '1/12/1996', 
+      birth_date: '10/30/1987', 
+      disability: 'Visual Impairment', 
+      duration_of_residence: '',
+      status: 'active'
+    },
+    { 
+      id: 3, 
+      name: 'Tsegaab Anamo MRX', 
+      gender: 'Male', 
+      registration_date: '1/12/1996', 
+      birth_date: '10/30/1987', 
+      disability: 'Visual Impairment', 
+      duration_of_residence: '',
+      status: 'active'
+    },
   ]);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -29,7 +49,13 @@ const CandidateList = () => {
     console.log(`Edit candidate with ID: ${id}`);
     // Implement edit functionality
   };
-
+  const handleToggleStatus = (candidateId, currentStatus) => {
+    setCandidates(candidates.map(candidate => 
+      candidate.id === candidateId 
+        ? { ...candidate, status: currentStatus === 'active' ? 'inactive' : 'active' } 
+        : candidate
+    ));
+  };
   const handleAddCandidate = (newCandidate) => {
     setCandidates(prev => [
       ...prev,
@@ -53,6 +79,17 @@ const CandidateList = () => {
     { key: 'birth_date', header: 'Birth Date' },
     { key: 'disability', header: 'Disability' },
     { key: 'duration_of_residence', header: 'Duration of Residence' },
+    { 
+      key: 'status', 
+      header: 'Status',
+      render: (value) => (
+        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+          value === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+        }`}>
+          {value}
+        </span>
+      )
+    }
   ];
 
   return (
@@ -66,6 +103,7 @@ const CandidateList = () => {
         addButtonText="Register New Candidate"
         addButtonIcon={Plus}
         onAdd={() => setIsFormOpen(true)}
+        onToggleStatus={handleToggleStatus}
       />
       
       <CreateCandidateForm

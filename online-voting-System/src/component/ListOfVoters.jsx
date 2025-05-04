@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import DataTable from '../component/ui/Table';
-import RegisterVoterForm from './RegisterVoter'; // You'll need to create this form component
+import RegisterVoterForm from './RegisterVoter';
 
 const VoterList = () => {
   const [voters, setVoters] = useState([
@@ -14,7 +14,8 @@ const VoterList = () => {
       disability: 'None',
       duration_of_residence: '5 years',
       email: 'alemu.desta@example.com',
-      phone: '+251911223344'
+      phone: '+251911223344',
+      status: 'active'
     },
     { 
       id: 2, 
@@ -25,41 +26,10 @@ const VoterList = () => {
       disability: 'Hearing Impairment',
       duration_of_residence: '8 years',
       email: 'birtukan.h@example.com',
-      phone: '+251922334455'
+      phone: '+251922334455',
+      status: 'inactive'
     },
-    { 
-      id: 3, 
-      name: 'Chala Worku', 
-      gender: 'Male', 
-      registration_date: '4/5/2023', 
-      birth_date: '11/12/1978',
-      disability: 'None',
-      duration_of_residence: '12 years',
-      email: 'chala.w@example.com',
-      phone: '+251933445566'
-    },
-    { 
-      id: 4, 
-      name: 'Dawit Mekonnen', 
-      gender: 'Male', 
-      registration_date: '1/20/2023', 
-      birth_date: '7/5/1995',
-      disability: 'Visual Impairment',
-      duration_of_residence: '3 years',
-      email: 'dawit.m@example.com',
-      phone: '+251944556677'
-    },
-    { 
-      id: 5, 
-      name: 'Etenesh Alemu', 
-      gender: 'Female', 
-      registration_date: '5/30/2023', 
-      birth_date: '9/18/1988',
-      disability: 'None',
-      duration_of_residence: '7 years',
-      email: 'etenesh.a@example.com',
-      phone: '+251955667788'
-    },
+    // ... other voters with status field
   ]);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -75,6 +45,14 @@ const VoterList = () => {
     // Implement edit functionality
   };
 
+  const handleToggleStatus = (voterId, currentStatus) => {
+    setVoters(voters.map(voter => 
+      voter.id === voterId 
+        ? { ...voter, status: currentStatus === 'active' ? 'inactive' : 'active' } 
+        : voter
+    ));
+  };
+
   const handleAddVoter = (newVoter) => {
     setVoters(prev => [
       ...prev,
@@ -82,7 +60,7 @@ const VoterList = () => {
         ...newVoter,
         id: Math.max(...prev.map(v => v.id)) + 1,
         registration_date: new Date().toLocaleDateString(),
-        // Add any other transformations needed
+        status: 'active' // New voters are active by default
       }
     ]);
     setIsFormOpen(false);
@@ -97,6 +75,17 @@ const VoterList = () => {
     { key: 'duration_of_residence', header: 'Duration of Residence' },
     { key: 'email', header: 'Email' },
     { key: 'phone', header: 'Phone' },
+    { 
+      key: 'status', 
+      header: 'Status',
+      render: (value) => (
+        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+          value === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+        }`}>
+          {value}
+        </span>
+      )
+    }
   ];
 
   return (
@@ -110,9 +99,9 @@ const VoterList = () => {
         addButtonText="Register New Voter"
         addButtonIcon={Plus}
         onAdd={() => setIsFormOpen(true)}
+        onToggleStatus={handleToggleStatus}
       />
       
-      {/* You'll need to create this RegisterVoterForm component similar to CreateCandidateForm */}
       <RegisterVoterForm
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}

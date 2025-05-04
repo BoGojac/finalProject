@@ -11,7 +11,8 @@ const PartyList = () => {
       abbreviation: 'PP', 
       leader: 'Abiy Ahmed', 
       foundingYear: 2019,
-      headquarters: 'Addis Ababa'
+      headquarters: 'Addis Ababa',
+      status: 'active'
     },
     // ... other parties
   ]);
@@ -27,7 +28,13 @@ const PartyList = () => {
   const handleEdit = (id) => {
     console.log(`Edit party with ID: ${id}`);
   };
-
+  const handleToggleStatus = (partyId, currentStatus) => {
+    setParties(parties.map(party => 
+      party.id === partyId 
+        ? { ...party, status: currentStatus === 'active' ? 'inactive' : 'active' } 
+        : party
+    ));
+  };
   const handleAddParties = (newParty) => {
     // In a real app, you would call your API here
     setParties(prev => [
@@ -44,7 +51,18 @@ const PartyList = () => {
     { key: 'abbreviation', header: 'Abbreviation' },
     { key: 'leader', header: 'Leader' },
     { key: 'foundingYear', header: 'Founded' },
-    { key: 'headquarters', header: 'Headquarters' }
+    { key: 'headquarters', header: 'Headquarters' },
+    { 
+      key: 'status', 
+      header: 'Status',
+      render: (value) => (
+        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+          value === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+        }`}>
+          {value}
+        </span>
+      )
+    }
   ];
 
   return (
@@ -58,6 +76,7 @@ const PartyList = () => {
       addButtonText="Add New Party"
       addButtonIcon={Plus}
       onAdd={() => setIsFormOpen(true)}
+      onToggleStatus={handleToggleStatus}
     />
     
     <CreatePartyForm
