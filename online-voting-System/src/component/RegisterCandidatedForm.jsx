@@ -252,3 +252,130 @@ CreateCandidateForm.propTypes = {
 };
 
 export default CreateCandidateForm;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import PropTypes from 'prop-types';
+// import { useState } from 'react';
+// import Modal from './ui/FormModal';
+
+// const CreateCandidateForm = ({ isOpen, onClose, onSubmit, initialData }) => {
+//   const [formData, setFormData] = useState(initialData || {
+//     firstName: '',
+//     middleName: '',
+//     lastName: '',
+//     gender: 'Male',
+//     birthDate: '',
+//     residenceDuration: '',
+//     residenceUnit: 'years',
+//     homeNo: '',
+//     disability: 'None',
+//     disabilityType: '',
+//     image: null
+//   });
+
+//   const handleChange = (e) => {
+//     const { name, value } = e.target;
+//     setFormData(prev => ({ ...prev, [name]: value }));
+//   };
+
+//   const handleImageChange = (e) => {
+//     const file = e.target.files[0];
+//     if (file) {
+//       setFormData(prev => ({ ...prev, image: file }));
+//     }
+//   };
+
+//   const handleSubmit = (e) => {
+//     e.preventDefault();
+//     onSubmit(formData);
+//     setFormData({
+//       firstName: '',
+//       middleName: '',
+//       lastName: '',
+//       gender: 'Male',
+//       birthDate: '',
+//       residenceDuration: '',
+//       residenceUnit: 'years',
+//       homeNo: '',
+//       disability: 'None',
+//       disabilityType: '',
+//       image: null
+//     });
+//   };
+
+//   if (!isOpen) return null;
+
+//   return (
+//     <Modal title="Register New Candidate" onClose={onClose}>
+//       <form onSubmit={handleSubmit} className="space-y-4">
+//         {/* Simplified Image Upload */}
+//         <div className="mb-4">
+//           <label className="block text-sm font-medium text-gray-700 mb-1">
+//             Candidate Photo
+//           </label>
+//           <div className="flex items-center">
+//             <label className="cursor-pointer bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm">
+//               <span className="text-purple-600 hover:text-purple-800">
+//                 {formData.image ? 'Change Photo' : 'Upload Photo'}
+//               </span>
+//               <input
+//                 type="file"
+//                 accept="image/*"
+//                 onChange={handleImageChange}
+//                 className="hidden"
+//               />
+//             </label>
+//             {formData.image && (
+//               <span className="ml-3 text-sm text-gray-500">
+//                 {formData.image.name}
+//               </span>
+//             )}
+//           </div>
+//         </div>
+
+//         {/* Rest of your form fields remain the same */}
+//         {/* ... */}
+//       </form>
+//     </Modal>
+//   );
+// };
+
+// CreateCandidateForm.propTypes = {
+//   isOpen: PropTypes.bool.isRequired,
+//   onClose: PropTypes.func.isRequired,
+//   onSubmit: PropTypes.func.isRequired,
+//   initialData: PropTypes.object,
+// };
+
+// export default CreateCandidateForm;

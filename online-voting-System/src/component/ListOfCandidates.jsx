@@ -63,7 +63,7 @@ const CandidateList = () => {
         columns={columns}
         onDelete={handleDelete}
         onEdit={handleEdit}
-        addButtonText="Add New Candidate"
+        addButtonText="Register New Candidate"
         addButtonIcon={Plus}
         onAdd={() => setIsFormOpen(true)}
       />

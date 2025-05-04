@@ -23,6 +23,8 @@ import OverrideVoting from '../component/OverrideVoting';
 import ConstituencyPageCards from '../component/ui/ConstituencyPageCards';
 import CandidateList from '../component/ListOfCandidates';
 import ComplainForm from '../component/CandidateComplainForm';
+import PollingStationPageCards from '../component/ui/PollingStationPageCard';
+import VoterList from '../component/ListOfVoters';
 const RoutingPages = () => {
 	return (
 		<div>
@@ -90,7 +92,12 @@ const RoutingPages = () => {
 					<Route
 						path="/PollingStation"
 						element={<Layout><PollingStationPage /></Layout>}
-					/>
+					> 
+						<Route index element={<PollingStationPageCards/>}/>
+						<Route path="register-voter" element = {<VoterList/>}/>
+						{/* <Route path='view-candidates' element= {}/>
+						<Route path='result' element={}/>					 */}
+					</Route>
 
 
 					{/* Voters Page Route */}

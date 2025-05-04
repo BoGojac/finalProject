@@ -4,7 +4,6 @@ import {
   UserPlus,
   Users,
   BarChart2,
-  Settings,
 } from "lucide-react";
 
 const ConstituencyPageCards = () => {
@@ -45,12 +44,6 @@ const ConstituencyPageCards = () => {
       icon: <BarChart2 className="text-indigo-600" size={28} />,
       path: "/ConstituencyManagers/result"
     },
-    {
-      title: "Settings",
-      description: "Configure constituency settings",
-      icon: <Settings className="text-red-600" size={28} />,
-      path: "/ConstituencyManagers/setting"
-    },
   ];
 
   const handleCardClick = (path) => {
@@ -66,7 +59,7 @@ const ConstituencyPageCards = () => {
             className="bg-white rounded-xl p-5 shadow-md hover:shadow-lg transition-shadow cursor-pointer"
             onClick={() => handleCardClick(card.path)}
           >
-            <div className="flex items-center gap-25 mb-3">
+            <div className="flex items-center gap-10 mb-3">
               <h3 className="text-lg font-semibold">{card.title}</h3>
               <div className="p-2 bg-gray-100 rounded-full">{card.icon}</div>
             </div>

@@ -11,7 +11,6 @@ import {
 	LayoutDashboard,
 	List,
 	Map,
-	// Settings,
 	UserPlus,
 	Users,
 	Undo2,
@@ -38,7 +37,6 @@ const Sidebar = ({ sidebarOpen, isMobile, toggleSidebar }) => {
 			label: 'View Override History',
 			icon: <FileText size={18} />,
 		},
-		// { to: '/admin/Setting', label: 'Setting', icon: <Settings size={18} /> },
 	];
 
 	const constituencyLinks = [
@@ -62,11 +60,6 @@ const Sidebar = ({ sidebarOpen, isMobile, toggleSidebar }) => {
 			label: 'View Result',
 			icon: <BarChart2 size={18} />,
 		},
-		// {
-		// 	to: '/ConstituencyManagers/setting',
-		// 	label: 'Setting',
-		// 	icon: <Settings size={18} />,
-		// },
 	];
 
 	const boardManagerLinks = [
@@ -125,39 +118,29 @@ const Sidebar = ({ sidebarOpen, isMobile, toggleSidebar }) => {
 			label: 'View Override History',
 			icon: <FileText size={18} />,
 		},
-		// {
-		// 	to: '/boardmanagers/setting',
-		// 	label: 'Setting',
-		// 	icon: <Settings size={18} />, // Perfect as-is
-		// },
 	];
 
 	const pollingStationLinks = [
 		{
-			to: '/pollingstation',
+			to: '/PollingStation',
 			label: 'Dashboard',
 			icon: <LayoutDashboard size={18} />,
 		},
 		{
-			to: '/pollingstation/register-voter',
+			to: '/PollingStation/register-voter',
 			label: 'Register Voter',
-			icon: <UserPlus size={18} />, // Add user action
+			icon: <UserPlus size={18} />, 
 		},
 		{
-			to: '/pollingstation/view-candidates',
+			to: '/PollingStation/view-candidates',
 			label: 'View Candidates',
-			icon: <List size={18} />, // Searching/inspecting
+			icon: <List size={18} />, 
 		},
 		{
-			to: '/pollingstation/result',
+			to: '/PollingStation/result',
 			label: 'View Result',
-			icon: <BarChart2 size={18} />, // Data visualization
+			icon: <BarChart2 size={18} />, 
 		},
-		// {
-		// 	to: '/pollingstation/setting',
-		// 	label: 'Setting',
-		// 	icon: <Settings size={18} />,
-		// },
 	];
 
 	const votersLinks = [
@@ -169,28 +152,23 @@ const Sidebar = ({ sidebarOpen, isMobile, toggleSidebar }) => {
 		{
 			to: '/voters/view-candidates',
 			label: 'View Candidates',
-			icon: <UserSearch size={18} />, // Explore candidates
+			icon: <UserSearch size={18} />, 
 		},
 		{
 			to: '/voters/view-candidates',
 			label: 'Vote',
-			icon: <Vote size={18} />, // Explore candidates
+			icon: <Vote size={18} />, 
 		},
 		{
 			to: '/voters/view-voters',
 			label: 'View Voters',
-			icon: <List size={18} />, // Simple list view
+			icon: <List size={18} />, 
 		},
 		{
 			to: '/voters/result',
 			label: 'View Result',
-			icon: <BarChart2 size={18} />, // Results visualization
+			icon: <BarChart2 size={18} />, 
 		},
-		// {
-		// 	to: '/voters/setting',
-		// 	label: 'Setting',
-		// 	icon: <Settings size={18} />,
-		// },
 	];
 
 	const candidatesLinks = [
@@ -212,12 +190,12 @@ const Sidebar = ({ sidebarOpen, isMobile, toggleSidebar }) => {
 		{
 			to: '/Candidates/result',
 			label: 'View Result',
-			icon: <BarChart2 size={18} />, // Results visualization
+			icon: <BarChart2 size={18} />, 
 		},
 		{
 			to: '/Candidates/complain',
 			label: 'Complain Submission',
-			icon: <AlertCircle size={18} />, // Indicates an issue
+			icon: <AlertCircle size={18} />,
 		},
 	];
 
@@ -275,7 +253,7 @@ const Sidebar = ({ sidebarOpen, isMobile, toggleSidebar }) => {
                 key={to}
                 to={to}
                 className={`flex items-center gap-3 p-3 rounded hover:bg-blue-700 transition-all duration-300 ${
-                  pathname === to ? 'bg-blue-800' : ''
+                  pathname === to ? '' : ''
                 }`}
                 onClick={isMobile ? toggleSidebar : undefined}
               >
