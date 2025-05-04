@@ -16,7 +16,7 @@ const CreateCandidateForm = ({ isOpen, onClose, onSubmit, initialData }) => {
     disabilityType: '',
     image: null
   });
-// const [imagePreview, setImagePreview] = useState(initialData?.image || null);
+const [imagePreview, setImagePreview] = useState(initialData?.image || null);
   
 
   const handleChange = (e) => {
@@ -29,7 +29,7 @@ const CreateCandidateForm = ({ isOpen, onClose, onSubmit, initialData }) => {
     if (file) {
       setFormData(prev => ({ ...prev, image: file }));
       const reader = new FileReader();
-      // reader.onloadend = () => setImagePreview(reader.result);
+      reader.onloadend = () => setImagePreview(reader.result);
       reader.readAsDataURL(file);
     }
   };
@@ -58,7 +58,7 @@ const CreateCandidateForm = ({ isOpen, onClose, onSubmit, initialData }) => {
   return (
     <Modal title="Register New Candidate" onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Image Upload
+        {/* Image Upload */}
         <div className="flex flex-col items-center mb-4">
           <div className="w-24 h-24 rounded-full bg-gray-200 mb-2 overflow-hidden border border-gray-300">
             {imagePreview ? (
@@ -80,7 +80,7 @@ const CreateCandidateForm = ({ isOpen, onClose, onSubmit, initialData }) => {
               className="hidden"
             />
           </label>
-        </div> */}
+        </div>
 
         {/* Name Fields */}
         <div className="grid grid-cols-3 gap-3">
@@ -229,28 +229,6 @@ const CreateCandidateForm = ({ isOpen, onClose, onSubmit, initialData }) => {
               />
             </div>
           )}
-        </div>
-        {/* Simplified Image Upload */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Candidate Photo
-          </label>
-          <div className="flex items-center">
-            <label className="cursor-pointer bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
-              {formData.image ? 'Change Image' : 'Select Image'}
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="hidden"
-              />
-            </label>
-            {formData.image && (
-              <span className="ml-3 text-sm text-gray-500">
-                {formData.image.name} ({formData.image.type.split('/')[1]})
-              </span>
-            )}
-          </div>
         </div>
         {/* Form Actions */}
         <div className="justify-self-end space-x-3 pt-4 border-t border-gray-200 mt-6">
