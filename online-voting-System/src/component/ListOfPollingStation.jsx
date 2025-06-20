@@ -1,67 +1,95 @@
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import DataTable from '../component/ui/Table';
 import CreatePollingStationForm from './CreatePollingStationForm';
+import EditPollingStationForm from './EditPollingStationForm';
+import DeleteConfirmationModal from './ui/DeleteConfirmationModal';
+import usePollingStationStore from '../store/pollingStationStore'; // ✅ Use correct store
 
 const PollingStationList = () => {
-  const [pollingStations, setPollingStations] = useState([
-    { id: 1, name: 'Bole School', constituency: 'Addis Ababa Central', longitude: 38.7999, latitude: 8.9806 },
-    // ... other stations
-  ]);
+  const {
+    pollingStations,
+    fetchPollingStations,
+    isAddFormOpen,
+    openAddForm,
+    closeAddForm,
+    isEditFormOpen,
+    openEditForm,
+    closeEditForm,
+    selectedPollingStation,
+    deleteModal,
+    openDeleteModal,
+    closeDeleteModal,
+    confirmDeletePollingStation // ✅ Should be specific to polling station
+  } = usePollingStationStore();
 
-  const [isFormOpen, setIsFormOpen] = useState(false);
-
-
-  const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this polling station?')) {
-      setPollingStations(pollingStations.filter(station => station.id !== id));
-    }
-  };
-
-  const handleEdit = (id) => {
-    console.log(`Edit polling station with ID: ${id}`);
-  };
-
-  const handleAddPollingStation = (newPollingStation) => {
-    // In a real app, you would call your API here
-    setPollingStations(prev => [
-      ...prev,
-      {
-        ...newPollingStation,
-        id: Math.max(...prev.map(c => c.id)) + 1
-      }
-    ]);
-  };
+  useEffect(() => {
+    fetchPollingStations();
+  }, [fetchPollingStations]);
 
   const columns = [
     { key: 'name', header: 'Polling Station Name' },
-    { key: 'constituency', header: 'Constituency' },
-    { key: 'longitude', header: 'Longitude' },
-    { key: 'latitude', header: 'Latitude' }
+    { key: 'constituency_name', header: 'Constituency' }, // backend must provide this
+    {
+      key: 'longitude',
+      header: 'Longitude',
+      render: (value) => Number(value).toFixed(4)
+    },
+    {
+      key: 'latitude',
+      header: 'Latitude',
+      render: (value) => Number(value).toFixed(4)
+    },
+    {
+      key: 'status',
+      header: 'Status',
+    }
   ];
 
   return (
     <>
-    
-    <DataTable
-      title="Polling Station Management"
-      data={pollingStations}
-      columns={columns}
-      onDelete={handleDelete}
-      onEdit={handleEdit}
-      addButtonText="Add Polling Station"
-      addButtonIcon={Plus}
-      onAdd={() => setIsFormOpen(true)}
-    />
+      <DataTable
+        title="Polling Station Management"
+        data={pollingStations}
+        columns={columns}
+        onDelete={(id) => {
+          const item = pollingStations.find(p => p.id === id);
+          openDeleteModal(item);
+        }}
+        onEdit={(id) => {
+          const item = pollingStations.find(p => p.id === id);
+          console.log("Editing:", item); // ✅ Check that region_id is present
+          openEditForm(item);
+        }}
+        addButtonText="Add Polling Station"
+        addButtonIcon={Plus}
+        onAdd={openAddForm}
+      />
 
-    <CreatePollingStationForm
-            isOpen={isFormOpen}
-            onClose={() => setIsFormOpen(false)}
-            onSubmit={handleAddPollingStation}
-          />
+      {/* Create Form */}
+      <CreatePollingStationForm
+        isOpen={isAddFormOpen}
+        onClose={closeAddForm}
+        onSuccess={fetchPollingStations}
+      />
 
+      {/* Edit Form */}
+      <EditPollingStationForm
+        isOpen={isEditFormOpen}
+        onClose={closeEditForm}
+        onSuccess={fetchPollingStations}
+        pollingStation={selectedPollingStation}
+      />
+
+      {/* Delete Modal */}
+      <DeleteConfirmationModal
+        isOpen={deleteModal.isOpen}
+        onClose={closeDeleteModal}
+        onConfirm={confirmDeletePollingStation}
+        itemName={deleteModal.pollingStation?.name || ''}
+        isLoading={deleteModal.isLoading}
+      />
     </>
-    
   );
 };
 

@@ -17,6 +17,7 @@ import {
 	UserSearch,
 	Vote,
 	NotebookPen,
+	MapPinHouse,
 } from 'lucide-react';
 const Sidebar = ({ sidebarOpen, isMobile, toggleSidebar }) => {
     const { pathname } = useLocation();
@@ -67,6 +68,11 @@ const Sidebar = ({ sidebarOpen, isMobile, toggleSidebar }) => {
 			to: '/boardmanagers',
 			label: 'Dashboard',
 			icon: <LayoutDashboard size={18} />,
+		},
+		{
+			to: '/boardmanagers/add-region',
+			label: 'Add Region',
+			icon: <MapPinHouse size={18} />, // Represents geographic division
 		},
 		{
 			to: '/boardmanagers/create-constituency',

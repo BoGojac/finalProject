@@ -1,180 +1,137 @@
-import { useState } from 'react';
-import { FaTimes } from 'react-icons/fa'; // Import the close icon
-import { Link, useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Link, useNavigate } from 'react-router-dom';
+import { FaTimes } from 'react-icons/fa';
+import useAuthStore from '../store/authStore';
+import axios from 'axios';
+import { z } from 'zod';
+
+export const loginSchema = z.object({
+  email: z.string().email('Invalid email').min(1, 'Email is required'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+});
 
 const LoginPage = () => {
-	const [formData, setFormData] = useState({
-		username: '',
-		password: '',
-	});
+  const navigate = useNavigate();
+  const login = useAuthStore((state) => state.login);
 
-	const [errors, setErrors] = useState({
-		username: '',
-		password: '',
-	});
+  const {
+    register,
+    handleSubmit,
+	setError,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+  });
 
-	const navigate = useNavigate(); // Hook for navigation
+  const onSubmit = async (data) => {
+    try {
+      const response = await axios.post(
+        'http://127.0.0.1:8000/api/login',
+        data,
+        {
+          headers: {
+            'Accept': 'application/json',
+          },
+        }
+      );
 
-	// Handle input changes
-	const handleInputChange = (e) => {
-		const { id, value } = e.target;
-		setFormData((prev) => ({ ...prev, [id]: value }));
-		setErrors((prev) => ({ ...prev, [id]: '' }));
-	};
+      const { user, access_token } = response.data;
 
-	// Validate form inputs
-	const validateForm = () => {
-		let isValid = true;
-		const newErrors = { username: '', password: '' };
+      // Store token and user in Zustand
+      login(user, access_token);
+      const role = user.role.toLowerCase().replace(/\s+/g, '');
+      // Redirect based on user role
+      switch (role) {
+        case 'admin':
+          navigate('/Admin');
+          break;
+        case 'constituency':
+          navigate('/ConstituencyManagers');
+          break;
+        case 'pollingstation':
+          navigate('/PollingStation');
+          break;
+        case 'boardmanager':
+          navigate('/BoardManagers');
+          break;
+        case 'voter':
+          navigate('/VotersPage');
+          break;
+        case 'candidate':
+          navigate('/Candidates');
+          break;
+        default:
+          alert('Unknown role: ' + user.role);
+      }
+    } catch (error) {
+      setError("root", { message: error.response?.data.message || 'Login failed. Please try again later.' });
+    }
+  };
 
-		if (!formData.username || formData.username.trim() === '') {
-			newErrors.username = 'Username is required.';
-			isValid = false;
-		}
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-[#455883] to-[#00B5A5] px-4 py-6">
+      <div className="bg-white p-5 sm:p-8 rounded-lg shadow-lg w-full max-w-sm sm:max-w-md relative">
+        <Link
+          to="/"
+          className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+        >
+          <FaTimes size={20} />
+        </Link>
 
-		if (!formData.password || formData.password.length < 8) {
-			newErrors.password = 'Password must be at least 8 characters long.';
-			isValid = false;
-		}
+        <div className="text-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Login</h1>
+          <p className="text-sm text-gray-600">Enter your credentials</p>
+        </div>
 
-		setErrors(newErrors);
-		return isValid;
-	};
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              {...register('email')}
+              className={`w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-[#6B4AA0] ${
+                errors.email ? 'border-red-500' : 'border-gray-300'
+              }`}
+            />
+            {errors.email && (
+              <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>
+            )}
+          </div>
 
-	// Handle form submission
-	const handleSubmit = (e) => {
-		e.preventDefault();
-
-		if (validateForm()) {
-			const UNM = [
-				'Admin',
-				'Constituency',
-				'PollingStation',
-				'BoardManager',
-				'Voter',
-				'Candidate',
-			];
-			const pass = '123456789'; // Updated static password
-
-			// console.log('Entered Password:', formData.password); // Debug log
-			// console.log('Expected Password:', pass); // Debug log
-
-			if (formData.password === pass) {
-				switch (formData.username) {
-					case UNM[0]:
-						navigate('/Admin');
-						break;
-					case UNM[1]:
-						navigate('/ConstituencyManagers');
-						break;
-					case UNM[2]:
-						navigate('/PollingStation');
-						break;
-					case UNM[3]:
-						navigate('/BoardManagers');
-						break;
-					case UNM[4]:
-						navigate('/VotersPage');
-						break;
-					case UNM[5]:
-						navigate('/Candidates');
-						break;
-					default:
-						alert('Invalid username');
-				}
-			} else {
-				alert('Invalid password');
-			}
-		}
-	};
-
-	return (
-		<div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-[#455883] to-[#00B5A5] px-4 py-6 login-container">
-			{/* Login Form Container */}
-			<div className="bg-white p-5 sm:p-8 rounded-lg shadow-lg w-full max-w-sm sm:max-w-md relative">
-				{/* Close Icon */}
-				<Link
-					to="/" // Navigate back to the homepage
-					className="absolute top-3 right-3 sm:top-4 sm:right-4 text-gray-500 hover:text-gray-700"
-				>
-					<FaTimes size={20} className="sm:w-6 sm:h-6" /> {/* Close icon */}
-				</Link>
-
-				{/* Header */}
-				<div className="text-center mb-4 sm:mb-6">
-					<h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-						Login
-					</h1>
-					<p className="text-sm sm:text-base text-gray-600">
-						Enter your credentials to access your account
-					</p>
-				</div>
-
-				{/* Login Form */}
-				<form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-					{/* Username Field */}
-					<div className="space-y-1 sm:space-y-2">
-						<label
-							htmlFor="username"
-							className="text-sm font-medium text-gray-700 block"
-						>
-							Username
-						</label>
-						<input
-							id="username"
-							type="text"
-							placeholder="Enter your username"
-							value={formData.username}
-							onChange={handleInputChange}
-							className={`w-full px-3 py-2 sm:px-4 border rounded-md focus:outline-none focus:ring-1 focus:ring-[#6B4AA0] text-sm ${
-								errors.username ? 'border-red-500' : 'border-gray-300'
-							}`}
-							autoComplete="username"
-						/>
-						{errors.username && (
-							<p className="text-xs sm:text-sm text-red-500 mt-1">
-								{errors.username}
-							</p>
-						)}
-					</div>
-
-					{/* Password Field */}
-					<div className="space-y-1 sm:space-y-2">
-						<label
-							htmlFor="password"
-							className="text-sm font-medium text-gray-700 block"
-						>
-							Password
-						</label>
-						<input
-							id="password"
-							type="password"
-							placeholder="Enter your password"
-							value={formData.password}
-							onChange={handleInputChange}
-							className={`w-full px-3 py-2 sm:px-4 border rounded-md focus:outline-none focus:ring-1 focus:ring-[#6B4AA0] text-sm ${
-								errors.password ? 'border-red-500' : 'border-gray-300'
-							}`}
-							autoComplete="current-password"
-						/>
-						{errors.password && (
-							<p className="text-xs sm:text-sm text-red-500 mt-1">
-								{errors.password}
-							</p>
-						)}
-					</div>
-
-					{/* Login Button */}
-					<button
-						type="submit"
-						className="w-full bg-[#6B4AA0] hover:bg-[#5a3b91] text-white px-4 py-2.5 rounded-md text-sm font-medium transition-colors duration-300 mt-2 sm:mt-4"
-					>
-						Login
-					</button>
-				</form>
-			</div>
-		</div>
-	);
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              {...register('password')}
+              className={`w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-[#6B4AA0] ${
+                errors.password ? 'border-red-500' : 'border-gray-300'
+              }`}
+            />
+            {errors.password && (
+              <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>
+            )}
+          </div>
+		  {errors.root && (
+			<p className="text-xs text-red-500 mt-1">{errors.root.message}</p>
+		  )}
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full bg-[#6B4AA0] hover:bg-[#5a3b91] text-white px-4 py-2.5 rounded-md text-sm font-medium mt-2 transition"
+          >
+            {isSubmitting ? 'Logging in...' : 'Login'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
 };
 
 export default LoginPage;

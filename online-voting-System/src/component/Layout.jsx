@@ -6,7 +6,7 @@ import Sidebar from './SideBar';
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-
+ 
   // Detect mobile devices
   useEffect(() => {
     const handleResize = () => {

@@ -50,11 +50,11 @@ const DataTable = ({
               {data.map((item, index) => (
                 <tr key={item.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{index + 1}</td>
-                  {columns.map((column) => (
-                    <td key={column.key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {column.render ? column.render(item[column.key], item) : item[column.key]}
-                    </td>
-                  ))}
+                    {columns.map((column) => (
+                      <td key={column.key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {column.render ? column.render(item[column.key], item) : (item[column.key] || '—')}
+                      </td>
+                    ))}
                   <td className="flex px-6 py-4 whitespace-nowrap text-sm text-gray-500 space-x-2">
                     <button 
                       onClick={() => onEdit(item.id)}

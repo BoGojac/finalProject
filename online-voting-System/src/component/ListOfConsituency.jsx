@@ -1,52 +1,48 @@
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import DataTable from '../component/ui/Table';
 import CreateConstituencyForm from './CreateConstituencyForm';
+import useConstituencyStore from '../store/constituencyStore'; 
+import EditConstituencyForm from './EditConstituencyForm'; 
+import DeleteConfirmationModal from './ui/DeleteConfirmationModal';
 
 const ConstituencyList = () => {
-  const [constituencies, setConstituencies] = useState([
-    { id: 1, name: 'Addis Ababa Central', region: 'Addis Ababa', longitude: 38.7636, latitude: 9.0054 },
-    { id: 2, name: 'Oromia East', region: 'Oromia', longitude: 39.5434, latitude: 8.5263 },
-    { id: 3, name: 'Amhara North', region: 'Amhara', longitude: 37.4833, latitude: 11.5936 },
-    { id: 4, name: 'SNNP South', region: 'SNNP', longitude: 36.9541, latitude: 6.8412 },
-  ]);
+  const {
+    constituencies,
+    fetchConstituencies,
+    openAddForm,
+    closeAddForm,
+    isAddFormOpen,
+    isEditFormOpen,
+    openEditForm,
+    closeEditForm,
+    selectedConstituency,
+    deleteModal,
+    openDeleteModal,
+    closeDeleteModal,
+    confirmDeleteConstituency
+  } = useConstituencyStore();
 
-  const [isFormOpen, setIsFormOpen] = useState(false);
-
-  const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this constituency?')) {
-      setConstituencies(constituencies.filter(constituency => constituency.id !== id));
-    }
-  };
-
-  const handleEdit = (id) => {
-    console.log(`Edit constituency with ID: ${id}`);
-    // You would typically open a modal or navigate to an edit page here
-  };
-
-  const handleAddConstituency = (newConstituency) => {
-    // In a real app, you would call your API here
-    setConstituencies(prev => [
-      ...prev,
-      {
-        ...newConstituency,
-        id: Math.max(...prev.map(c => c.id)) + 1
-      }
-    ]);
-  };
+  useEffect(() => {
+    fetchConstituencies();
+  }, [fetchConstituencies]);
 
   const columns = [
     { key: 'name', header: 'Constituency Name' },
-    { key: 'region', header: 'Region' },
-    { 
-      key: 'longitude', 
+    { key: 'region_name', header: 'Region' },
+    {
+      key: 'longitude',
       header: 'Longitude',
-      render: (value) => value.toFixed(4) // Format to 4 decimal places
+      render: (value) => Number(value).toFixed(4)
     },
-    { 
-      key: 'latitude', 
+    {
+      key: 'latitude',
       header: 'Latitude',
-      render: (value) => value.toFixed(4) // Format to 4 decimal places
+      render: (value) => Number(value).toFixed(4)
+    },
+    {
+      key: 'status',
+      header: 'Status',
     }
   ];
 
@@ -56,18 +52,43 @@ const ConstituencyList = () => {
         title="Constituency Management"
         data={constituencies}
         columns={columns}
-        onDelete={handleDelete}
-        onEdit={handleEdit}
+        onDelete={(id) => {
+          const item = constituencies.find(c => c.id === id);
+          openDeleteModal(item);
+        }}
+        onEdit={(id) => {
+          const item = constituencies.find(c => c.id === id);
+          openEditForm(item);
+        }}
         addButtonText="Add Constituency"
         addButtonIcon={Plus}
-        onAdd={() => setIsFormOpen(true)}
+        onAdd={openAddForm}
       />
-      
+
+      {/* Add Form */}
       <CreateConstituencyForm
-        isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        onSubmit={handleAddConstituency}
+        isOpen={isAddFormOpen}
+        onClose={closeAddForm}
+        onSuccess={fetchConstituencies}
       />
+
+      {/* Edit Form */}
+      <EditConstituencyForm
+        isOpen={isEditFormOpen}
+        onClose={closeEditForm}
+        onSuccess={fetchConstituencies}
+        constituency={selectedConstituency}
+      />
+
+      {/* Delete Modal */}
+      <DeleteConfirmationModal
+        isOpen={deleteModal.isOpen}
+        onClose={closeDeleteModal}
+        onConfirm={confirmDeleteConstituency}
+        itemName={deleteModal.constituency?.name || ''}
+        isLoading={deleteModal.isLoading}
+      />
+
     </>
   );
 };

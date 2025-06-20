@@ -7,6 +7,7 @@ import {
   Undo2,
   NotebookPen,
   Map,
+  MapPinHouse,
 } from "lucide-react";
 
 const BoardManagerPageCards = () => {
@@ -16,10 +17,24 @@ const BoardManagerPageCards = () => {
   const stats = {
     constituencies: 24,
     pollingStations: 187,
-    parties: 12
+    parties: 12,
+    region:14
   };
 
   const cards = [
+    {
+      title: "Add Region",
+      description: (
+        <div className="space-y-1">
+          <p>Add new electoral region</p>
+          <div className="text-xs text-gray-500 pt-2">
+            Current: {stats.region} constituencies
+          </div>
+        </div>
+      ),
+      icon: <MapPinHouse className="text-blue-600" size={28}  />,
+      path: "/boardmanagers/add-region"
+    },
     {
       title: "Create Constituency",
       description: (

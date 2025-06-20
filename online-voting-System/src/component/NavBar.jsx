@@ -4,6 +4,9 @@ import { useState } from 'react';
 import Avatar from './Avatar';
 import profilePic from '../assets/proP.jpg';
 import PropTypes from 'prop-types';
+import { useNavigate } from 'react-router-dom';
+import useAuthStore from '../store/authStore';
+
 
 const NavBar = ({ toggleSidebar, sidebarOpen, isMobile }) => {
   const { pathname } = useLocation();
@@ -36,6 +39,16 @@ const userType = pathname.toLowerCase().includes('admin')
   : pathname.toLowerCase().includes('candidates')
   ? 'Candidate User'
   : '';
+
+
+  const logout = useAuthStore((state) => state.logout);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout(); // Clear auth state
+    navigate('/login'); // or navigate('/login') if that’s your login route
+  };
+
 
   return (
     <nav className="relative flex items-center justify-between h-16 px-4 sm:px-6 w-full shadow-sm z-30 bg-white">
@@ -101,13 +114,13 @@ const userType = pathname.toLowerCase().includes('admin')
                 <RefreshCcw className="w-4 h-4 mr-3"/>
                 Change Password
               </Link>
-              <Link
-                to="/logout"
+              <button
+                onClick={handleLogout}
                 className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-red-600"
               >
                 <LogOut className="w-4 h-4 mr-3" />
                 Logout
-              </Link>
+              </button>
             </div>
           </div>
         )}

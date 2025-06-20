@@ -105,7 +105,7 @@ const CandidateList = () => {
         onAdd={() => setIsFormOpen(true)}
         onToggleStatus={handleToggleStatus}
       />
-      
+    
       <CreateCandidateForm
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}

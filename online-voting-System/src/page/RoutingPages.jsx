@@ -25,6 +25,7 @@ import CandidateList from '../component/ListOfCandidates';
 import ComplainForm from '../component/CandidateComplainForm';
 import PollingStationPageCards from '../component/ui/PollingStationPageCard';
 import VoterList from '../component/ListOfVoters';
+import AddRegion from '../component/AddRegion';
 const RoutingPages = () => {
 	return (
 		<div>
@@ -53,6 +54,7 @@ const RoutingPages = () => {
 					{/* Board Managers Page Route */}
 					<Route path="/BoardManagers" element={<Layout><BoardManagersPage /></Layout>}>
 					<Route index element={<BoardManagerPageCards />} />
+					<Route path="add-region" element={<AddRegion />} />
 					<Route path="create-constituency" element={<ConstituencyList />} />
 					<Route path="create-polling-station" element={<PollingStationList />} />
 					<Route path="register-party" element={<PartyList />} />
