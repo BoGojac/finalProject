@@ -1,132 +1,162 @@
-// // EditPartyForm.jsx
-// import { useEffect, useState } from 'react';
-// import Modal from './ui/FormModal';
-// // import PropTypes from 'prop-types';
-// import axios from 'axios';
-// import usePartyStore  from '../store/usePartyStore';
+import { useEffect } from 'react';
+import Modal from './ui/FormModal';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import usePartyStore from '../store/partyStore';
+import useRegionStore from '../store/regionStore';
+import axios from 'axios';
 
-// const EditPartyForm = () => {
-//   const { isEditOpen, closeEditForm, selectedParty, updateParty } = usePartyStore();
-//   const [formData, setFormData] = useState({
-//     name: '',
-//     abbreviation: '',
-//     leader: '',
-//     foundingYear: '',
-//     headquarters: '',
-//     participation_area: 'national',
-//     region_id: '',
-//     logo: null,
-//   });
-//   const [regions, setRegions] = useState([]);
+const partySchema = z.object({
+  name: z.string().min(1, 'Party name is required'),
+  abbrivation: z.string().min(1, 'Abbreviation is required'), // 👈 match DB
+  leader: z.string().min(1, 'Leader is required'),
+  foundation_year: z.string().min(1, 'Founding year is required'), // 👈 match DB
+  headquarters: z.string().min(1, 'Headquarters is required'),
+  participation_area: z.enum(['national', 'regional']),
+  region_id: z.string().optional(),
+  logo: z.any().optional()
+});
 
-//   useEffect(() => {
-//     if (selectedParty) {
-//       setFormData({
-//         ...selectedParty,
-//         region_id: selectedParty.region_id || '',
-//       });
-//     }
-//   }, [selectedParty]);
+const EditPartyForm = () => {
+  const {
+    isEditFormOpen,
+    selectedParty,
+    closeEditForm,
+    fetchParties,
+  } = usePartyStore();
 
-//   useEffect(() => {
-//     axios.get('http://127.0.0.1:8000/api/regions')
-//       .then(res => setRegions(res.data.data))
-//       .catch(err => console.error('Failed to load regions:', err));
-//   }, []);
+  const { regions, fetchRegions } = useRegionStore();
 
-//   const handleChange = (e) => {
-//     const { name, value } = e.target;
-//     setFormData(prev => ({ ...prev, [name]: value }));
-//   };
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors, isSubmitting }
+  } = useForm({
+    resolver: zodResolver(partySchema)
+  });
 
-//   const handleFileChange = (e) => {
-//     setFormData(prev => ({ ...prev, logo: e.target.files[0] }));
-//   };
+  const participationArea = watch('participation_area');
 
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-//     const payload = new FormData();
-//     Object.entries(formData).forEach(([key, value]) => {
-//       if (formData.participation_area !== 'regional' && key === 'region_id') return;
-//       if (value) payload.append(key, value);
-//     });
-//     updateParty(selectedParty.id, payload);
-//     closeEditForm();
-//   };
+  useEffect(() => {
+    fetchRegions();
+  }, [fetchRegions]);
 
-//   if (!isEditOpen || !selectedParty) return null;
+  useEffect(() => {
+    if (selectedParty) {
+      reset({
+        ...selectedParty,
+        region_id: selectedParty.region_id ? String(selectedParty.region_id) : '',
+        logo: null,
+      });
+    }
+  }, [selectedParty, reset]);
 
-//   return (
-//     <Modal title="Edit Party" onClose={closeEditForm}>
-//       <form onSubmit={handleSubmit} className="space-y-4">
-//         <div>
-//           <label className="block">Party Name</label>
-//           <input type="text" name="name" value={formData.name} onChange={handleChange} required className="form-input w-full" />
-//         </div>
+  const onSubmit = async (data) => {
+    try {
+      const payload = new FormData();
+      Object.entries(data).forEach(([key, value]) => {
+        if (participationArea !== 'regional' && key === 'region_id') return;
+        if (key === 'logo' && value instanceof File) {
+          payload.append('image', value); // backend expects 'image'
+        } else if (value) {
+          payload.append(key, value);
+        }
+      });
 
-//         <div className="grid grid-cols-2 gap-4">
-//           <div>
-//             <label className="block">Abbreviation</label>
-//             <input type="text" name="abbreviation" value={formData.abbreviation} onChange={handleChange} required className="form-input w-full" />
-//           </div>
-//           <div>
-//             <label className="block">Leader</label>
-//             <input type="text" name="leader" value={formData.leader} onChange={handleChange} required className="form-input w-full" />
-//           </div>
-//         </div>
+      await axios.put(`http://127.0.0.1:8000/api/party/${selectedParty.id}`, payload, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
-//         <div className="grid grid-cols-2 gap-4">
-//           <div>
-//             <label className="block">Founding Year</label>
-//             <input type="number" name="foundingYear" value={formData.foundingYear} onChange={handleChange} required className="form-input w-full" />
-//           </div>
-//           <div>
-//             <label className="block">Headquarters</label>
-//             <input type="text" name="headquarters" value={formData.headquarters} onChange={handleChange} required className="form-input w-full" />
-//           </div>
-//         </div>
+      await fetchParties();
+      closeEditForm();
+      reset();
+    } catch (error) {
+      console.error('Failed to update party:', error.response?.data || error.message);
+    }
+  };
 
-//         <div>
-//           <label className="block">Participation Area</label>
-//           <div className="space-x-4">
-//             <label className="inline-flex items-center">
-//               <input type="radio" name="participation_area" value="national" checked={formData.participation_area === 'national'} onChange={handleChange} className="form-radio" />
-//               <span className="ml-2">National</span>
-//             </label>
-//             <label className="inline-flex items-center">
-//               <input type="radio" name="participation_area" value="regional" checked={formData.participation_area === 'regional'} onChange={handleChange} className="form-radio" />
-//               <span className="ml-2">Regional</span>
-//             </label>
-//           </div>
-//         </div>
+  if (!isEditFormOpen || !selectedParty) return null;
 
-//         {formData.participation_area === 'regional' && (
-//           <div>
-//             <label className="block">Region</label>
-//             <select name="region_id" value={formData.region_id} onChange={handleChange} required className="form-select w-full">
-//               <option value="">Select Region</option>
-//               {regions.map(region => (
-//                 <option key={region.id} value={region.id}>{region.name}</option>
-//               ))}
-//             </select>
-//           </div>
-//         )}
+  return (
+    <Modal title="Edit Party" onClose={closeEditForm}>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div>
+          <label className="block">Party Name</label>
+          <input {...register('name')} className={`form-input w-full ${errors.name ? 'border-red-500' : ''}`} />
+          {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
+        </div>
 
-//         <div>
-//           <label className="block">Party Logo</label>
-//           <input type="file" name="logo" onChange={handleFileChange} className="form-input w-full" accept="image/*" />
-//         </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block">Abbreviation</label>
+            <input {...register('abbrivation')} className={`form-input w-full ${errors.abbrivation ? 'border-red-500' : ''}`} />
+            {errors.abbrivation && <p className="text-red-500 text-sm">{errors.abbrivation.message}</p>}
+          </div>
+          <div>
+            <label className="block">Leader</label>
+            <input {...register('leader')} className={`form-input w-full ${errors.leader ? 'border-red-500' : ''}`} />
+            {errors.leader && <p className="text-red-500 text-sm">{errors.leader.message}</p>}
+          </div>
+        </div>
 
-//         <div className="pt-4">
-//           <button type="submit" className="px-4 py-2 bg-purple-800 text-white rounded-md hover:bg-purple-700">Update Party</button>
-//         </div>
-//       </form>
-//     </Modal>
-//   );
-// };
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block">Founding Year</label>
+            <input type="date" {...register('foundation_year')} className={`form-input w-full ${errors.foundation_year ? 'border-red-500' : ''}`} />
+            {errors.foundation_year && <p className="text-red-500 text-sm">{errors.foundation_year.message}</p>}
+          </div>
+          <div>
+            <label className="block">Headquarters</label>
+            <input {...register('headquarters')} className={`form-input w-full ${errors.headquarters ? 'border-red-500' : ''}`} />
+            {errors.headquarters && <p className="text-red-500 text-sm">{errors.headquarters.message}</p>}
+          </div>
+        </div>
 
-// EditPartyForm.propTypes = {
-//   // unused in Zustand version
-// };
+        <div>
+          <label className="block">Participation Area</label>
+          <div className="space-x-4">
+            <label className="inline-flex items-center">
+              <input type="radio" value="national" {...register('participation_area')} className="form-radio" />
+              <span className="ml-2">National</span>
+            </label>
+            <label className="inline-flex items-center">
+              <input type="radio" value="regional" {...register('participation_area')} className="form-radio" />
+              <span className="ml-2">Regional</span>
+            </label>
+          </div>
+        </div>
 
-// export default EditPartyForm;
+        {participationArea === 'regional' && (
+          <div>
+            <label className="block">Region</label>
+            <select {...register('region_id')} className={`form-select w-full ${errors.region_id ? 'border-red-500' : ''}`}>
+              <option value="">Select Region</option>
+              {regions.map(region => (
+                <option key={region.id} value={String(region.id)}>{region.name}</option>
+              ))}
+            </select>
+            {errors.region_id && <p className="text-red-500 text-sm">{errors.region_id.message}</p>}
+          </div>
+        )}
+
+        <div>
+          <label className="block">Party Logo</label>
+          <input type="file" {...register('logo')} className="form-input w-full" accept="image/*" />
+        </div>
+
+        <div className="pt-4 flex justify-end space-x-3">
+          <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-purple-800 text-white rounded-md hover:bg-purple-600 disabled:opacity-50">
+            {isSubmitting ? 'Updating...' : 'Update Party'}
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+};
+
+export default EditPartyForm;

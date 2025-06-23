@@ -17,7 +17,7 @@ const constituencySchema = z.object({
 const CreateConstituencyForm = ({ isOpen, onClose, onSuccess }) => {
   const { regions, fetchRegions } = useRegionStore();
 
-  const {
+  const { 
     register,
     handleSubmit,
     setError,

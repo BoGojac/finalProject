@@ -1,88 +1,132 @@
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import DataTable from '../component/ui/Table';;
 import CreatePartyForm from './CreatePartyForm';
+import usePartyStore from '../store/partyStore';
+import axios from 'axios';
+import DeleteConfirmationModal from './ui/DeleteConfirmationModal';
+import EditPartyForm from './EditPartyForm';
 
 const PartyList = () => {
-  const [parties, setParties] = useState([
-    { 
-      id: 1, 
-      name: 'Prosperity Party', 
-      abbreviation: 'PP', 
-      leader: 'Abiy Ahmed', 
-      foundingYear: 2019,
-      headquarters: 'Addis Ababa',
-      status: 'active'
-    },
-    // ... other parties
-  ]);
 
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const {
+    parties,
+    fetchParties,
+    openAddForm,
+    closeAddForm,
+    isAddFormOpen,
+    isEditFormOpen,
+    openEditForm,
+    closeEditForm,
+    selectedParty,
+    deleteModal,
+    openDeleteModal,
+    closeDeleteModal,
+    confirmDeleteParty
+  } = usePartyStore();
+  
+   useEffect(() => {
+    fetchParties();
+  }, [fetchParties]);
 
-  const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this party?')) {
-      setParties(parties.filter(party => party.id !== id));
-    }
-  };
 
-  const handleEdit = (id) => {
-    console.log(`Edit party with ID: ${id}`);
-  };
-  const handleToggleStatus = (partyId, currentStatus) => {
-    setParties(parties.map(party => 
-      party.id === partyId 
-        ? { ...party, status: currentStatus === 'active' ? 'inactive' : 'active' } 
-        : party
-    ));
-  };
-  const handleAddParties = (newParty) => {
-    // In a real app, you would call your API here
-    setParties(prev => [
-      ...prev,
+    const columns = [
+      { key: 'name', header: 'Party Name' },
+      { key: 'abbrevation', header: 'Abbreviation' },
+      { key: 'leader', header: 'Leader' },
+      { key: 'foundation_year', header: 'Founded' },
+      { key: 'headquarters', header: 'Headquarters' },
+      { key: 'participation_area', header: 'Participation Area' },
+      { key: 'region_name', header: 'Region' },
       {
-        ...newParty,
-        id: Math.max(...prev.map(c => c.id)) + 1
-      }
-    ]);
+        key: 'original_image_name',
+        header: 'Image',
+        render: (fileName, row) => (
+          fileName ? (
+            <a
+              href={`http://127.0.0.1:8000/storage/${row.image}`} 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:underline text-sm"
+            >
+              {fileName}
+            </a>
+          ) : '-'
+        ),
+      },
+
+      {
+        key: 'status',
+        header: 'Status',
+        render: (value) => (
+          <span
+            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+              value === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            }`}
+          >
+            {value}
+          </span>
+        ),
+      },
+    ];
+
+
+    const handleToggleStatus = async (id, currentStatus) => {
+    try {
+      const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+
+      await axios.patch(`http://127.0.0.1:8000/api/party/status/${id}`, {
+        status: newStatus,
+      });
+
+      fetchParties();
+    } catch (error) {
+      console.error('Failed to toggle status:', error.response?.data || error.message);
+    }
   };
 
-  const columns = [
-    { key: 'name', header: 'Party Name' },
-    { key: 'abbreviation', header: 'Abbreviation' },
-    { key: 'leader', header: 'Leader' },
-    { key: 'foundingYear', header: 'Founded' },
-    { key: 'headquarters', header: 'Headquarters' },
-    { 
-      key: 'status', 
-      header: 'Status',
-      render: (value) => (
-        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-          value === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-        }`}>
-          {value}
-        </span>
-      )
-    }
-  ];
 
   return (
     <>
-    <DataTable
-      title="Political Party Management"
-      data={parties}
-      columns={columns}
-      onDelete={handleDelete}
-      onEdit={handleEdit}
-      addButtonText="Add New Party"
-      addButtonIcon={Plus}
-      onAdd={() => setIsFormOpen(true)}
-      onToggleStatus={handleToggleStatus}
-    />
+      <DataTable
+        title="Political Party Management"
+        data={Array.isArray(parties) ? parties : []} 
+        columns={columns}
+        onDelete={(id) => {
+          const item = parties.find(c => c.id === id);
+          openDeleteModal(item);
+        }}
+        onEdit={(id) => {
+          const item = parties.find(c => c.id === id);
+          openEditForm(item);
+        }}
+        addButtonText="Add Party"
+        addButtonIcon={Plus}
+        onAdd={openAddForm}
+        onToggleStatus={handleToggleStatus}
+      />
+
     
     <CreatePartyForm
-        isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        onSubmit={handleAddParties}
+         isOpen={isAddFormOpen}
+        onClose={closeAddForm}
+        onSuccess={fetchParties}
+    />
+
+     <EditPartyForm
+        isOpen={isEditFormOpen}
+        onClose={closeEditForm}
+        onSuccess={fetchParties}
+        party={selectedParty}
+      />
+    
+      {/* Delete Modal */}
+      <DeleteConfirmationModal
+        isOpen={deleteModal.isOpen}
+        onClose={closeDeleteModal}
+        onConfirm={confirmDeleteParty}
+        itemName={deleteModal.party?.name || ''}
+        isLoading={deleteModal.isLoading}
       />
     </>
     
