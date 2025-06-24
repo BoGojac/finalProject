@@ -3,19 +3,19 @@ import { Plus } from 'lucide-react';
 import axios from 'axios';
 import DataTable from '../component/ui/Table';
 import CreateUserForm from './CreateUserForm';
-// import EditUserForm from './EditUserForm'; 
+import EditUserForm from './EditUserForm'; 
 import useUserStore from '../store/userStore.js'; 
 const UsersList = () => {
   const {
     users,
     fetchUsers,
     isAddFormOpen,
-    // isEditFormOpen,
+    isEditFormOpen,
     openAddForm,
     closeAddForm,
     openEditForm,
-    // closeEditForm,
-    // selectedUser,
+    closeEditForm,
+    selectedUser,
   } = useUserStore();
 
   useEffect(() => {
@@ -23,16 +23,15 @@ const UsersList = () => {
   }, [fetchUsers]);
 
   const columns = [
-    { key: 'username', header: 'Username' },
-    { key: 'email', header: 'Email' },
-    { key: 'phone_number', header: 'Phone' },
-    { key: 'role', header: 'Role' },
     {
       key: 'full_name',
       header: 'Name',
       render: (_, row) =>
         [row.first_name, row.middle_name, row.last_name].filter(Boolean).join(' ')
     },
+    { key: 'email', header: 'Email' },
+    { key: 'phone_number', header: 'Phone' },
+    { key: 'role', header: 'Role' },
     { key: 'gender', header: 'Gender' },
     {
       key: 'status',
@@ -87,12 +86,12 @@ const UsersList = () => {
       />
 
       {/* Edit User Form */}
-      {/* <EditUserForm
+      <EditUserForm
         isOpen={isEditFormOpen}
         onClose={closeEditForm}
         onSuccess={fetchUsers}
         user={selectedUser}
-      /> */}
+      />
     </div>
   );
 };

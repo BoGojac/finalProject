@@ -1,378 +1,273 @@
-// import PropTypes from 'prop-types';
-// import { useEffect, useState } from 'react';
-// import { useForm } from 'react-hook-form';
-// import { z } from 'zod';
-// import { zodResolver } from '@hookform/resolvers/zod';
-// import axios from 'axios';
-// import useRegionStore from '../store/regionStore';
-// import useConstituencyStore from '../store/constituencyStore';
-// import usePollingStationStore from '../store/pollingStationStore';
+import PropTypes from 'prop-types';
+import { useEffect } from 'react';
+import Modal from './ui/FormModal';
+import { useForm } from 'react-hook-form';
+import axios from 'axios';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import useRegionStore from '../store/regionStore';
+import useConstituencyStore from '../store/constituencyStore';
+import usePollingStationStore from '../store/pollingStationStore';
 
-// const userSchema = z.object({
-//   firstName: z.string().min(1, 'First name is required'),
-//   middleName: z.string().optional(),
-//   lastName: z.string().min(1, 'Last name is required'),
-//   gender: z.enum(['male', 'female']),
-//   email: z.string().email('Invalid email address'),
-//   phoneNumber: z.string().min(1, 'Phone number is required'),
-//   username: z.string().min(1, 'Username is required'),
-//   role: z.enum(['admin', 'boardmanager', 'constituency', 'pollingstation']),
-//   region_id: z.string().optional(),
-//   constituency_id: z.string().optional(),
-//   polling_station_id: z.string().optional(),
-// });
+const userSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  middleName: z.string().optional(),
+  lastName: z.string().min(1, 'Last name is required'),
+  gender: z.enum(['male', 'female']),
+  email: z.string().email('Invalid email'),
+  phoneNumber: z.string().min(10, 'Phone number required'),
+  username: z.string().min(1, 'Username required'),
+  role: z.enum(['Admin', 'Board Manager', 'Constituency Staff', 'Polling Station Staff']),
+  region_id: z.string().optional(),
+  constituency_id: z.string().optional(),
+  polling_station_id: z.string().optional(),
+});
 
-// const EditUserForm = ({ user, onClose }) => {
-//   const { regions, fetchRegions } = useRegionStore();
-//   const { constituencies, fetchConstituencies } = useConstituencyStore();
-//   const { pollingStations, fetchPollingStations } = usePollingStationStore();
+const EditUserForm = ({ isOpen, onClose, user, onSuccess }) => {
+  const { regions, fetchRegions } = useRegionStore();
+  const { constituencies, fetchConstituencies } = useConstituencyStore();
+  const { pollingStations, fetchPollingStations } = usePollingStationStore();
 
-//   const [isSubmitting, setIsSubmitting] = useState(false);
-//   const [submitError, setSubmitError] = useState(null);
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    reset,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(userSchema),
+    defaultValues: {
+      ...user,
+      firstName: user?.first_name || '',
+      middleName: user?.middle_name || '',
+      lastName: user?.last_name || '',
+      phoneNumber: user?.phone_number || '',
+      region_id: user?.region?.id || '',
+      constituency_id: user?.constituency?.id || '',
+      polling_station_id: user?.polling_station?.id || '',
+    },
+  });
 
-//   const {
-//     register,
-//     handleSubmit,
-//     watch,
-//     setValue,
-//     reset,
-//     formState: { errors },
-//   } = useForm({
-//     resolver: zodResolver(userSchema),
-//     defaultValues: {
-//       ...user,
-//       region_id: user.region?.id || '',
-//       constituency_id: user.constituency?.id || '',
-//       polling_station_id: user.polling_station?.id || '',
-//       // Make sure role is lowercase to match schema enum values
-//       role: user.role?.toLowerCase() || '',
-//     },
-//   });
+  const watchRole = watch('role');
+  const watchRegion = watch('region_id');
+  const watchConstituency = watch('constituency_id');
 
-//   const watchRole = watch('role');
-//   const watchRegion = watch('region_id');
-//   const watchConstituency = watch('constituency_id');
+  useEffect(() => { 
+    fetchRegions(); 
+    if (user) {
+      reset({
+        ...user,
+        firstName: user.first_name,
+        middleName: user.middle_name,
+        lastName: user.last_name,
+        phoneNumber: user.phone_number,
+        region_id: user.region?.id || '',
+        constituency_id: user.constituency?.id || '',
+        polling_station_id: user.polling_station?.id || '',
+      });
+    }
+  }, [fetchRegions, user, reset]);
 
-//   useEffect(() => {
-//     fetchRegions();
-//   }, [fetchRegions]);
+  useEffect(() => {
+    if (['Constituency Staff', 'Polling Station Staff'].includes(watchRole)) {
+      fetchConstituencies();
+    }
+  }, [watchRole, fetchConstituencies]);
 
-//   useEffect(() => {
-//     if (watchRole === 'constituency' || watchRole === 'pollingstation') {
-//       fetchConstituencies();
-//     }
-//   }, [watchRole, fetchConstituencies]);
+  useEffect(() => {
+    if (watchRole === 'Polling Station Staff' && watchConstituency) {
+      fetchPollingStations(watchConstituency);
+    }
+  }, [watchRole, watchConstituency, fetchPollingStations]);
 
-//   useEffect(() => {
-//     if (watchRole === 'pollingstation' && watchConstituency) {
-//       fetchPollingStations(watchConstituency);
-//     }
-//   }, [watchRole, watchConstituency, fetchPollingStations]);
+  const onSubmit = async (data) => {
+    if (['Constituency Staff', 'Polling Station Staff'].includes(data.role)) {
+      if (!data.region_id) {
+        setError('region_id', { type: 'manual', message: 'Region is required for this role' });
+        return;
+      }
+      if (data.role === 'Polling Station Staff' && !data.constituency_id) {
+        setError('constituency_id', { type: 'manual', message: 'Constituency is required' });
+        return;
+      }
+      if (data.role === 'Polling Station Staff' && !data.polling_station_id) {
+        setError('polling_station_id', { type: 'manual', message: 'Polling station is required' });
+        return;
+      }
+    }
 
-//   useEffect(() => {
-//     if (user) {
-//       reset({
-//         ...user,
-//         region_id: user.region?.id || '',
-//         constituency_id: user.constituency?.id || '',
-//         polling_station_id: user.polling_station?.id || '',
-//         role: user.role?.toLowerCase() || '',
-//       });
-//     }
-//   }, [user, reset]);
+    try {
+      await axios.put(`http://127.0.0.1:8000/api/users/${user.id}`, {
+        first_name: data.firstName,
+        middle_name: data.middleName,
+        last_name: data.lastName,
+        gender: data.gender,
+        email: data.email,
+        phone_number: data.phoneNumber,
+        username: data.username,
+        role: data.role,
+        region_id: data.region_id || null,
+        constituency_id: data.constituency_id || null,
+        polling_station_id: data.polling_station_id || null,
+      });
 
-//   const onSubmit = async (data) => {
-//     setIsSubmitting(true);
-//     setSubmitError(null);
+      onClose();
+      if (onSuccess) onSuccess();
+    } catch (error) {
+      setError('root', { 
+        type: 'manual', 
+        message: error.response?.data?.message || 'Failed to update user' 
+      });
+    }
+  };
 
-//     try {
-//       // Adjust API URL as needed
-//       const url = `http://127.0.0.1:8000/api/party/${user.id}`;
+  if (!isOpen) return null;
 
-//       // Optional: Prepare payload; remove empty strings for optional fields
-//       const payload = {
-//         ...data,
-//         region_id: data.region_id || null,
-//         constituency_id: data.constituency_id || null,
-//         polling_station_id: data.polling_station_id || null,
-//       };
+  return (
+    <Modal title="Edit User" onClose={onClose}>
+      <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {[{
+          label: 'First Name', field: 'firstName'
+        }, {
+          label: 'Middle Name', field: 'middleName', optional: true
+        }, {
+          label: 'Last Name', field: 'lastName'
+        }, {
+          label: 'Email', field: 'email'
+        }, {
+          label: 'Phone Number', field: 'phoneNumber'
+        }, ].map(({ label, field, type = 'text', optional }) => (
+          <div key={field} className="flex flex-col">
+            <label className="text-sm font-medium">{label}</label>
+            <input
+              type={type}
+              {...register(field)}
+              className={`w-full border rounded h-10 px-2 ${errors[field] ? 'border-red-500' : 'border-gray-300'}`}
+              placeholder={label}
+            />
+            {!optional && errors[field] && <p className="text-red-500 text-sm">{errors[field].message}</p>}
+          </div>
+        ))}
 
-//       await axios.patch(url, payload);
+        {/* Gender */}
+        <div className="flex flex-col">
+          <label className="text-sm font-medium">Gender</label>
+          <div className="flex gap-4 mt-2">
+            {['male', 'female'].map(gender => (
+              <label key={gender} className="flex items-center gap-1">
+                <input 
+                  type="radio" 
+                  value={gender} 
+                  {...register('gender')} 
+                  className="text-purple-600 focus:ring-purple-500" 
+                />
+                {gender.charAt(0).toUpperCase() + gender.slice(1)}
+              </label>
+            ))}
+          </div>
+        </div>
 
-//       setIsSubmitting(false);
-//       onClose(); // Close form on success
-//     } catch (error) {
-//       setIsSubmitting(false);
-//       if (error.response?.data?.message) {
-//         setSubmitError(error.response.data.message);
-//       } else {
-//         setSubmitError('An error occurred while updating the user.');
-//       }
-//     }
-//   };
+        {/* Role */}
+        <div className="flex flex-col">
+          <label className="text-sm font-medium">Role</label>
+          <select 
+            {...register('role')} 
+            className={`w-full border rounded h-10 px-2 ${errors.role ? 'border-red-500' : 'border-gray-300'}`}
+            onChange={(e) => {
+              setValue('role', e.target.value);
+              setValue('region_id', '');
+              setValue('constituency_id', '');
+              setValue('polling_station_id', '');
+            }}
+          >
+            {['admin', 'boardmanager', 'constituency', 'pollingstation'].map(role => (
+              <option key={role} value={role}>{role}</option>
+            ))}
+          </select>
+          {errors.role && <p className="text-red-500 text-sm">{errors.role.message}</p>}
+        </div>
 
-//   return (
-//     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-//       <div className="absolute inset-0 bg-white/20 backdrop-blur-sm" onClick={onClose}></div>
+        {/* Region */}
+        {(watchRole === 'Constituency Staff' || watchRole === 'Polling Station Staff') && (
+          <div className="flex flex-col">
+            <label className="text-sm font-medium">Region</label>
+            <select 
+              {...register('region_id')} 
+              className={`w-full border rounded h-10 px-2 ${errors.region_id ? 'border-red-500' : 'border-gray-300'}`}
+              onChange={(e) => {
+                setValue('region_id', e.target.value);
+                setValue('constituency_id', '');
+                setValue('polling_station_id', '');
+              }}
+            >
+              <option value="">Select Region</option>
+              {regions.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+            </select>
+            {errors.region_id && <p className="text-red-500 text-sm">{errors.region_id.message}</p>}
+          </div>
+        )}
 
-//       <div
-//         className="relative z-50 w-full max-w-md md:max-w-xl lg:max-w-3xl bg-white/80 backdrop-blur-lg rounded-xl shadow-2xl border border-white/30 overflow-y-auto"
-//         style={{ maxHeight: '90vh' }}
-//       >
-//         <div className="p-6">
-//           <div className="flex justify-between items-center mb-4">
-//             <h3 className="text-xl font-semibold text-gray-800">Edit User</h3>
-//             <button
-//               onClick={onClose}
-//               className="text-gray-500 hover:text-gray-700 transition-colors"
-//               aria-label="Close"
-//             >
-//               <svg
-//                 xmlns="http://www.w3.org/2000/svg"
-//                 className="h-6 w-6"
-//                 fill="none"
-//                 viewBox="0 0 24 24"
-//                 stroke="currentColor"
-//               >
-//                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-//               </svg>
-//             </button>
-//           </div>
+        {/* Constituency */}
+        {(watchRegion && (watchRole === 'Constituency Staff' || watchRole === 'Polling Station Staff')) && (
+          <div className="flex flex-col">
+            <label className="text-sm font-medium">Constituency</label>
+            <select 
+              {...register('constituency_id')} 
+              className={`w-full border rounded h-10 px-2 ${errors.constituency_id ? 'border-red-500' : 'border-gray-300'}`}
+              onChange={(e) => {
+                setValue('constituency_id', e.target.value);
+                setValue('polling_station_id', '');
+              }}
+            >
+              <option value="">Select Constituency</option>
+              {constituencies.filter(c => c.region_id == watchRegion).map(c => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+            {errors.constituency_id && <p className="text-red-500 text-sm">{errors.constituency_id.message}</p>}
+          </div>
+        )}
 
-//           <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-//             {/* Personal Information */}
-//             <div>
-//               <label className="block text-sm font-medium text-gray-700 mb-1">First Name*</label>
-//               <input
-//                 type="text"
-//                 {...register('firstName')}
-//                 className={`w-full p-2 border rounded-lg bg-white/70 focus:ring-2 focus:ring-[#6B4AA0]/50 focus:border-[#6B4AA0] outline-none transition-all ${
-//                   errors.firstName ? 'border-red-500' : 'border-gray-300'
-//                 }`}
-//               />
-//               {errors.firstName && <p className="text-xs text-red-500 mt-1">{errors.firstName.message}</p>}
-//             </div>
+        {/* Polling Station */}
+        {watchRole === 'Polling Station Staff' && watchConstituency && (
+          <div className="flex flex-col">
+            <label className="text-sm font-medium">Polling Station</label>
+            <select 
+              {...register('polling_station_id')} 
+              className={`w-full border rounded h-10 px-2 ${errors.polling_station_id ? 'border-red-500' : 'border-gray-300'}`}
+            >
+              <option value="">Select Polling Station</option>
+              {pollingStations.filter(p => p.constituency_id == watchConstituency).map(p => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+            {errors.polling_station_id && <p className="text-red-500 text-sm">{errors.polling_station_id.message}</p>}
+          </div>
+        )}
 
-//             <div>
-//               <label className="block text-sm font-medium text-gray-700 mb-1">Middle Name</label>
-//               <input
-//                 type="text"
-//                 {...register('middleName')}
-//                 className="w-full p-2 border border-gray-300 rounded-lg bg-white/70 focus:ring-2 focus:ring-[#6B4AA0]/50 focus:border-[#6B4AA0] outline-none transition-all"
-//               />
-//             </div>
+        {/* Submit */}
+        {errors.root && <p className="text-red-600 text-center col-span-2">{errors.root.message}</p>}
+        <div className="col-span-2 flex justify-end mt-6">
+          <button 
+            type="submit" 
+            disabled={isSubmitting} 
+            className="bg-purple-800 text-white px-6 py-2 rounded hover:bg-purple-600 disabled:opacity-50"
+          >
+            {isSubmitting ? 'Updating...' : 'Update User'}
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+};
 
-//             <div>
-//               <label className="block text-sm font-medium text-gray-700 mb-1">Last Name*</label>
-//               <input
-//                 type="text"
-//                 {...register('lastName')}
-//                 className={`w-full p-2 border rounded-lg bg-white/70 focus:ring-2 focus:ring-[#6B4AA0]/50 focus:border-[#6B4AA0] outline-none transition-all ${
-//                   errors.lastName ? 'border-red-500' : 'border-gray-300'
-//                 }`}
-//               />
-//               {errors.lastName && <p className="text-xs text-red-500 mt-1">{errors.lastName.message}</p>}
-//             </div>
+EditUserForm.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  user: PropTypes.object.isRequired,
+  onSuccess: PropTypes.func,
+};
 
-//             <div>
-//               <label className="block text-sm font-medium text-gray-700 mb-1">Gender*</label>
-//               <div className="flex gap-4 mt-1">
-//                 <label className="flex items-center gap-2">
-//                   <input
-//                     type="radio"
-//                     value="male"
-//                     {...register('gender')}
-//                     className="text-[#6B4AA0] focus:ring-[#6B4AA0]"
-//                   />
-//                   <span>Male</span>
-//                 </label>
-//                 <label className="flex items-center gap-2">
-//                   <input
-//                     type="radio"
-//                     value="female"
-//                     {...register('gender')}
-//                     className="text-[#6B4AA0] focus:ring-[#6B4AA0]"
-//                   />
-//                   <span>Female</span>
-//                 </label>
-//               </div>
-//             </div>
-
-//             {/* Contact Information */}
-//             <div>
-//               <label className="block text-sm font-medium text-gray-700 mb-1">Email*</label>
-//               <input
-//                 type="email"
-//                 {...register('email')}
-//                 className={`w-full p-2 border rounded-lg bg-white/70 focus:ring-2 focus:ring-[#6B4AA0]/50 focus:border-[#6B4AA0] outline-none transition-all ${
-//                   errors.email ? 'border-red-500' : 'border-gray-300'
-//                 }`}
-//               />
-//               {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
-//             </div>
-
-//             <div>
-//               <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number*</label>
-//               <input
-//                 type="tel"
-//                 {...register('phoneNumber')}
-//                 className={`w-full p-2 border rounded-lg bg-white/70 focus:ring-2 focus:ring-[#6B4AA0]/50 focus:border-[#6B4AA0] outline-none transition-all ${
-//                   errors.phoneNumber ? 'border-red-500' : 'border-gray-300'
-//                 }`}
-//               />
-//               {errors.phoneNumber && <p className="text-xs text-red-500 mt-1">{errors.phoneNumber.message}</p>}
-//             </div>
-
-//             {/* Account Information */}
-//             <div>
-//               <label className="block text-sm font-medium text-gray-700 mb-1">Username*</label>
-//               <input
-//                 type="text"
-//                 {...register('username')}
-//                 className={`w-full p-2 border rounded-lg bg-white/70 focus:ring-2 focus:ring-[#6B4AA0]/50 focus:border-[#6B4AA0] outline-none transition-all ${
-//                   errors.username ? 'border-red-500' : 'border-gray-300'
-//                 }`}
-//               />
-//               {errors.username && <p className="text-xs text-red-500 mt-1">{errors.username.message}</p>}
-//             </div>
-
-//             {/* Role Selection */}
-//             <div className="md:col-span-2">
-//               <label className="block text-sm font-medium text-gray-700 mb-1">Role*</label>
-//               <select
-//                 {...register('role')}
-//                 className={`w-full p-2 border rounded-lg bg-white/70 focus:ring-2 focus:ring-[#6B4AA0]/50 focus:border-[#6B4AA0] outline-none transition-all ${
-//                   errors.role ? 'border-red-500' : 'border-gray-300'
-//                 }`}
-//                 onChange={(e) => {
-//                   setValue('role', e.target.value);
-//                   // Clear dependent selects when role changes
-//                   setValue('region_id', '');
-//                   setValue('constituency_id', '');
-//                   setValue('polling_station_id', '');
-//                 }}
-//               >
-//                 <option value="">Select Role</option>
-//                 <option value="admin">Admin</option>
-//                 <option value="boardmanager">Board Manager</option>
-//                 <option value="constituency">Constituency Staff</option>
-//                 <option value="pollingstation">Polling Station Staff</option>
-//               </select>
-//             </div>
-
-//             {/* Conditional Fields */}
-//             {(watchRole === 'constituency' || watchRole === 'pollingstation') && (
-//               <div className="md:col-span-2">
-//                 <label className="block text-sm font-medium text-gray-700 mb-1">Region*</label>
-//                 <select
-//                   {...register('region_id', {
-//                     required: watchRole === 'constituency' || watchRole === 'pollingstation',
-//                   })}
-//                   className={`w-full p-2 border rounded-lg bg-white/70 focus:ring-2 focus:ring-[#6B4AA0]/50 focus:border-[#6B4AA0] outline-none transition-all ${
-//                     errors.region_id ? 'border-red-500' : 'border-gray-300'
-//                   }`}
-//                   onChange={(e) => {
-//                     setValue('region_id', e.target.value);
-//                     setValue('constituency_id', '');
-//                     setValue('polling_station_id', '');
-//                   }}
-//                 >
-//                   <option value="">Select Region</option>
-//                   {regions.map((region) => (
-//                     <option key={region.id} value={region.id}>
-//                       {region.name}
-//                     </option>
-//                   ))}
-//                 </select>
-//                 {errors.region_id && <p className="text-xs text-red-500 mt-1">{errors.region_id.message}</p>}
-//               </div>
-//             )}
-
-//             {(watchRole === 'constituency' || watchRole === 'pollingstation') && watchRegion && (
-//               <div className="md:col-span-2">
-//                 <label className="block text-sm font-medium text-gray-700 mb-1">Constituency*</label>
-//                 <select
-//                   {...register('constituency_id', {
-//                     required: watchRole === 'constituency' || watchRole === 'pollingstation',
-//                   })}
-//                   className={`w-full p-2 border rounded-lg bg-white/70 focus:ring-2 focus:ring-[#6B4AA0]/50 focus:border-[#6B4AA0] outline-none transition-all ${
-//                     errors.constituency_id ? 'border-red-500' : 'border-gray-300'
-//                   }`}
-//                   onChange={(e) => {
-//                     setValue('constituency_id', e.target.value);
-//                     if (watchRole === 'pollingstation') {
-//                       setValue('polling_station_id', '');
-//                     }
-//                   }}
-//                 >
-//                   <option value="">Select Constituency</option>
-//                   {constituencies
-//                     .filter((c) => c.region_id === watchRegion)
-//                     .map((constituency) => (
-//                       <option key={constituency.id} value={constituency.id}>
-//                         {constituency.name}
-//                       </option>
-//                     ))}
-//                 </select>
-//                 {errors.constituency_id && (
-//                   <p className="text-xs text-red-500 mt-1">{errors.constituency_id.message}</p>
-//                 )}
-//               </div>
-//             )}
-
-//             {watchRole === 'pollingstation' && watchConstituency && (
-//               <div className="md:col-span-2">
-//                 <label className="block text-sm font-medium text-gray-700 mb-1">Polling Station*</label>
-//                 <select
-//                   {...register('polling_station_id', {
-//                     required: watchRole === 'pollingstation',
-//                   })}
-//                   className={`w-full p-2 border rounded-lg bg-white/70 focus:ring-2 focus:ring-[#6B4AA0]/50 focus:border-[#6B4AA0] outline-none transition-all ${
-//                     errors.polling_station_id ? 'border-red-500' : 'border-gray-300'
-//                   }`}
-//                 >
-//                   <option value="">Select Polling Station</option>
-//                   {pollingStations
-//                     .filter((ps) => ps.constituency_id === watchConstituency)
-//                     .map((station) => (
-//                       <option key={station.id} value={station.id}>
-//                         {station.name}
-//                       </option>
-//                     ))}
-//                 </select>
-//                 {errors.polling_station_id && (
-//                   <p className="text-xs text-red-500 mt-1">{errors.polling_station_id.message}</p>
-//                 )}
-//               </div>
-//             )}
-
-//             {/* Submission error */}
-//             {submitError && (
-//               <div className="md:col-span-2 text-center text-red-600 font-semibold mt-2">
-//                 {submitError}
-//               </div>
-//             )}
-
-//             {/* Submit Button */}
-//             <div className="md:col-span-2 flex justify-end mt-4">
-//               <button
-//                 type="submit"
-//                 disabled={isSubmitting}
-//                 className="px-6 py-2 rounded-lg bg-[#6B4AA0]/90 text-white hover:bg-[#5a3b91] transition-all shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#6B4AA0] focus:ring-opacity-50 disabled:opacity-50"
-//               >
-//                 {isSubmitting ? 'Updating...' : 'Update User'}
-//               </button>
-//             </div>
-//           </form>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// EditUserForm.propTypes = {
-//   user: PropTypes.object.isRequired,
-//   onClose: PropTypes.func.isRequired,
-// };
-
-// export default EditUserForm;
+export default EditUserForm;
