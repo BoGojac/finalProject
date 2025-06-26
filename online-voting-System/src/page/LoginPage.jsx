@@ -14,11 +14,12 @@ export const loginSchema = z.object({
 const LoginPage = () => {
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
+  const{  token, admin, board_manager, constituency_staff } = useAuthStore();
 
   const {
     register,
     handleSubmit,
-	setError,
+	  setError,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(loginSchema),
@@ -35,6 +36,7 @@ const LoginPage = () => {
           },
         }
       );
+      
 
       const { user, access_token } = response.data;
 
@@ -46,9 +48,23 @@ const LoginPage = () => {
         case 'admin':
           navigate('/Admin');
           break;
-        case 'constituencystaff':
+        case 'constituencystaff':{
+          const response = await axios.get('http://127.0.0.1:8000/api/constituencystaff-user',
+            {
+              headers: {
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${access_token}`
+              },
+            },
+          );
+          const constituency_staff_res  = response.data;
+          login(user, access_token, null, null, constituency_staff_res);
+          console.log('before navigation:', user, token, admin, board_manager, constituency_staff_res  );
           navigate('/ConstituencyManagers');
+          console.log('after navigation:', user, token, admin, board_manager, constituency_staff_res  );
           break;
+        }
+          
         case 'pollingstationstaff':
           navigate('/PollingStation');
           break;

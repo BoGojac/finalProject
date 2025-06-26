@@ -58,16 +58,15 @@ const candidateSchema = z.object({
 const CreateCandidateForm = ({ isOpen, onClose }) => {
   const { votingDates, fetchVotingDates } = useVotingDateStore();
   const { parties, fetchParties } = usePartyStore();
-  const { constituencyStaff } = useAuthStore(); // Removed unused 'user'
+  const { constituency_staff } = useAuthStore();
   const { fetchConstituencies } = useConstituencyStore();
 
   const {
     register,
     handleSubmit,
     watch,
-    setValue,
+    // setValue,
     setError,
-    reset,
     formState: { errors, isSubmitting }
   } = useForm({
     resolver: zodResolver(candidateSchema),
@@ -90,17 +89,20 @@ const CreateCandidateForm = ({ isOpen, onClose }) => {
     }
   }, [isOpen, fetchVotingDates, fetchParties, fetchConstituencies]);
 
-  useEffect(() => {
-    if (constituencyStaff?.constituency_id) {
-      setValue('constituency_id', constituencyStaff.constituency_id.toString()); // Ensure it's a string
-    }
-  }, [constituencyStaff, setValue]);
-    console.log('Hello:');
-  const onSubmit = async (data) => {
-    console.log('Form data before validation:', data);
-  try {
-    console.log('Form data before submission:', data);
+  // useEffect(() => {
+  //   if (user?.id) {
+  //     setValue('constituency_id', user.constituency_id.toString()); // Ensure it's a string
+  //   }
+  // }, [user, setValue]);
     
+  //   useEffect(() => {
+  //   console.log("Hello:");
+  // }, []);
+
+  const onSubmit = async (data) => {
+     console.log("Submitted");
+     console.log('Form data before submission:', data);
+  try {
     // First create the user
     const userRes = await axios.post('http://127.0.0.1:8000/api/userregister', {
       email: data.email,
@@ -115,9 +117,9 @@ const CreateCandidateForm = ({ isOpen, onClose }) => {
 
     console.log('User registration response:', userRes);
 
-    if (userRes.status !== 201) {
-      throw new Error('User registration failed');
-    }
+      if (userRes.status !== 201 && userRes.status !== 200) {
+        throw new Error('User registration failed');
+      }
 
     const userId = userRes.data.user.id;
     console.log('Created user ID:', userId);
@@ -125,7 +127,6 @@ const CreateCandidateForm = ({ isOpen, onClose }) => {
     // Prepare candidate data
     const formData = new FormData();
     formData.append('user_id', userId);
-    formData.append('constituency_id', data.constituency_id);
     formData.append('first_name', data.firstName);
     formData.append('middle_name', data.middleName || '');
     formData.append('last_name', data.lastName);
@@ -137,6 +138,11 @@ const CreateCandidateForm = ({ isOpen, onClose }) => {
     formData.append('residence_unit', data.residenceUnit);
     formData.append('home_number', data.homeNo || '');
     formData.append('candidate_type', data.candidate_type);
+
+    console.log('constituency staff:', constituency_staff.constituency_id, constituency_staff );
+    if (constituency_staff != null){
+        formData.append('constituency_id', constituency_staff.constituency_id);
+     }
     
     if (data.candidate_type === 'party') {
       formData.append('party_id', data.party_id);
@@ -165,7 +171,6 @@ const CreateCandidateForm = ({ isOpen, onClose }) => {
     }
 
     onClose();
-    reset();
   } catch (err) {
       console.error('Full error:', err);
       console.error('Error response data:', err.response?.data);

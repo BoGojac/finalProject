@@ -34,6 +34,7 @@ const CandidateList = () => {
     { key: 'registration_date', header: 'Registration Date' },
     { key: 'birth_date', header: 'Birth Date' },
     { key: 'disability', header: 'Disability' },
+    { key: 'disability_type', header: 'Disability Type' },
     { key: 'duration_of_residence', header: 'Duration of Residence' },
     {
         key: 'original_image_name',
@@ -55,12 +56,17 @@ const CandidateList = () => {
     {
       key: 'status',
       header: 'Status',
-      render: (value) => (
+      render: (_, row) => (
         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-          value === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-        }`}>{value}</span>
+          row.user?.status === 'active'
+            ? 'bg-green-100 text-green-800'
+            : 'bg-red-100 text-red-800'
+        }`}>
+          {row.user?.status ?? 'Unknown'}
+        </span>
       )
     }
+
   ];
 
   return (

@@ -2,7 +2,7 @@
 import { create } from 'zustand';
 import axios from 'axios';
 
-const useConstituencyStore = create((set, get) => ({ // ✅ Include `get` here
+const useConstituencyStore = create((set, get) => ({ 
   constituencies: [],
   selectedConstituency: null,
 
