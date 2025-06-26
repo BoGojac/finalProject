@@ -6,16 +6,20 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Modal from './ui/FormModal'; 
 import useRegionStore from '../store/regionStore';
+import useVotingDateStore from '../store/votingDateStore';
 
 const constituencySchema = z.object({
   name: z.string().min(1, 'Constituency name is required'),
   region_id: z.string().min(1, 'Region is required'),
   longitude: z.string().min(1, 'Longitude is required'),
-  latitude: z.string().min(1, 'Latitude is required')
+  latitude: z.string().min(1, 'Latitude is required'),
+  voting_date_id: z.string().nonempty('Voting date is required'),
 });
 
 const CreateConstituencyForm = ({ isOpen, onClose, onSuccess }) => {
   const { regions, fetchRegions } = useRegionStore();
+  const { votingDates, fetchVotingDates } = useVotingDateStore();
+
 
   const { 
     register,
@@ -31,13 +35,17 @@ const CreateConstituencyForm = ({ isOpen, onClose, onSuccess }) => {
     fetchRegions();
   }, [fetchRegions]); 
 
+  useEffect(() => {
+  fetchVotingDates();
+}, [fetchVotingDates]);
+
   const onSubmit = async (data) => {
     const formData = new FormData();
     formData.append('name', data.name);
     formData.append('region_id', data.region_id);
     formData.append('longitude', data.longitude);
     formData.append('latitude', data.latitude);
-
+    formData.append('voting_date_id', data.voting_date_id);
     try {
       const response = await axios.post('http://127.0.0.1:8000/api/constituency', formData, {
         headers: {
@@ -90,6 +98,28 @@ const CreateConstituencyForm = ({ isOpen, onClose, onSuccess }) => {
           </select>
           {errors.region_id && (
             <p className="text-xs text-red-500">{errors.region_id.message}</p>
+          )}
+        </div>
+
+        {/* Voting Date Dropdown */}
+        <div className="flex flex-col">
+          <label className="text-sm font-medium">Voting Date</label>
+          <select
+            {...register('voting_date_id')}
+            className={`w-full border rounded h-10 px-2 ${
+              errors.voting_date_id ? 'border-red-500' : 'border-gray-300'
+            }`}
+          >
+            <option value="">Select Voting Date</option>
+              {Array.isArray(votingDates) &&
+                votingDates.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.title}
+                  </option>
+              ))}
+          </select>
+          {errors.voting_date_id && (
+            <p className="text-red-500 text-sm">{errors.voting_date_id.message}</p>
           )}
         </div>
 

@@ -3,7 +3,7 @@ import { Plus } from 'lucide-react';
 import DataTable from '../component/ui/Table';
 import AddRegionForm from './AddRegionForm';
 import EditRegionForm from './EditRegionForm';
-import DeleteConfirmationModal from './ui/DeleteConfirmationModal';
+// import DeleteConfirmationModal from './ui/DeleteConfirmationModal';
 import useRegionStore from '../store/regionStore';
 
 const AddRegion = () => {
@@ -19,10 +19,10 @@ const AddRegion = () => {
     closeAddForm,
     openEditForm,
     closeEditForm,
-    deleteModal,
+    // deleteModal,
     openDeleteModal,
-    closeDeleteModal,
-    confirmDeleteRegion,
+    // closeDeleteModal,
+    // confirmDeleteRegion,
   } = useRegionStore();
 
   useEffect(() => {
@@ -69,13 +69,13 @@ const AddRegion = () => {
         region={selectedRegion}
       />
 
-      <DeleteConfirmationModal
+      {/* <DeleteConfirmationModal
         isOpen={deleteModal.isOpen}
         onClose={closeDeleteModal}
         onConfirm={confirmDeleteRegion}
         itemName={deleteModal.region?.name || 'this region'}
         isLoading={deleteModal.isLoading}
-      />
+      /> */}
     </>
   );
 };

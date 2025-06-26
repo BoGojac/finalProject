@@ -1,68 +1,195 @@
 import PropTypes from 'prop-types';
-import { useState } from 'react';
+import { useEffect } from 'react';
 import Modal from './ui/FormModal';
+import { useForm } from 'react-hook-form';
+import axios from 'axios';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import useVotingDateStore from '../store/votingDateStore';
+import usePartyStore from '../store/partyStore';
+import useAuthStore from '../store/authStore';
+import useConstituencyStore from '../store/constituencyStore';
 
-const CreateCandidateForm = ({ isOpen, onClose, onSubmit, initialData }) => {
-  const [formData, setFormData] = useState(initialData || {
-    firstName: '',
-    middleName: '',
-    lastName: '',
-    gender: 'Male',
-    birthDate: '',
-    residenceDuration: '',
-    residenceUnit: 'years',
-    homeNo: '',
-    disability: 'None',
-    disabilityType: '',
-    image: null
-  });
-const [imagePreview, setImagePreview] = useState(initialData?.image || null);
-  
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData(prev => ({ ...prev, image: file }));
-      const reader = new FileReader();
-      reader.onloadend = () => setImagePreview(reader.result);
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSubmit(formData);
-    setFormData({
-      firstName: '',
-      middleName: '',
-      lastName: '',
-      gender: 'Male',
-      birthDate: '',
-      residenceDuration: '',
-      residenceUnit: 'years',
-      homeNo: '',
-      disability: 'None',
-      disabilityType: '',
-      image: null
+const candidateSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  middleName: z.string().optional(),
+  lastName: z.string().min(1, 'Last name is required'),
+  gender: z.enum(['Male', 'Female']),
+  birthDate: z.string().min(1, 'Birth date is required'),
+  residenceDuration: z.number().min(0, 'Residence duration must be positive'),
+  residenceUnit: z.enum(['months', 'years']),
+  homeNo: z.string().optional(),
+  disability: z.enum(['None', 'Visual', 'Hearing', 'Physical', 'Intellectual', 'Other']),
+  disabilityType: z.string().optional(),
+  candidate_type: z.enum(['individual', 'party']),
+  party_id: z.string().optional(),
+  email: z.string().email('Invalid email'),
+  phoneNumber: z.string().min(10, 'Phone number must be at least 10 digits'),
+  username: z.string().min(1, 'Username is required'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  password_confirmation: z.string().min(8, 'Confirm your password'),
+  voting_date_id: z.string().min(1, 'Voting date is required'),
+  constituency_id: z.string().min(1, 'Constituency is required'), // Added validation
+  image: z.any().optional()
+}).superRefine((data, ctx) => {
+  if (data.password !== data.password_confirmation) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Passwords don't match",
+      path: ['password_confirmation']
     });
-    // setImagePreview(null);
-  };
+  }
+  if (data.candidate_type === 'party' && !data.party_id) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Party is required for party candidates",
+      path: ['party_id']
+    });
+  }
+  if (data.disability === 'Other' && !data.disabilityType) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Please specify disability type",
+      path: ['disabilityType']
+    });
+  }
+});
+
+const CreateCandidateForm = ({ isOpen, onClose }) => {
+  const { votingDates, fetchVotingDates } = useVotingDateStore();
+  const { parties, fetchParties } = usePartyStore();
+  const { constituencyStaff } = useAuthStore(); // Removed unused 'user'
+  const { fetchConstituencies } = useConstituencyStore();
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    setError,
+    reset,
+    formState: { errors, isSubmitting }
+  } = useForm({
+    resolver: zodResolver(candidateSchema),
+    defaultValues: {
+      gender: 'Male',
+      disability: 'None',
+      candidate_type: 'individual',
+      residenceUnit: 'years'
+    }
+  });
+
+  const watchCandidateType = watch('candidate_type');
+  const watchDisability = watch('disability');
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchVotingDates();
+      fetchParties();
+      fetchConstituencies();
+    }
+  }, [isOpen, fetchVotingDates, fetchParties, fetchConstituencies]);
+
+  useEffect(() => {
+    if (constituencyStaff?.constituency_id) {
+      setValue('constituency_id', constituencyStaff.constituency_id.toString()); // Ensure it's a string
+    }
+  }, [constituencyStaff, setValue]);
+    console.log('Hello:');
+  const onSubmit = async (data) => {
+    console.log('Form data before validation:', data);
+  try {
+    console.log('Form data before submission:', data);
+    
+    // First create the user
+    const userRes = await axios.post('http://127.0.0.1:8000/api/userregister', {
+      email: data.email,
+      phone_number: data.phoneNumber,
+      username: data.username,
+      password: data.password,
+      password_confirmation: data.password_confirmation,
+      role: 'Candidate',
+      voting_date_id: data.voting_date_id,
+      status: 'active'
+    });
+
+    console.log('User registration response:', userRes);
+
+    if (userRes.status !== 201) {
+      throw new Error('User registration failed');
+    }
+
+    const userId = userRes.data.user.id;
+    console.log('Created user ID:', userId);
+
+    // Prepare candidate data
+    const formData = new FormData();
+    formData.append('user_id', userId);
+    formData.append('constituency_id', data.constituency_id);
+    formData.append('first_name', data.firstName);
+    formData.append('middle_name', data.middleName || '');
+    formData.append('last_name', data.lastName);
+    formData.append('gender', data.gender.toLowerCase());
+    formData.append('birth_date', data.birthDate);
+    formData.append('disability', data.disability);
+    formData.append('disability_type', data.disabilityType || '');
+    formData.append('residence_duration', data.residenceDuration.toString());
+    formData.append('residence_unit', data.residenceUnit);
+    formData.append('home_number', data.homeNo || '');
+    formData.append('candidate_type', data.candidate_type);
+    
+    if (data.candidate_type === 'party') {
+      formData.append('party_id', data.party_id);
+    }
+
+    if (data.image && data.image.length > 0) {
+      formData.append('image', data.image[0]);
+    }
+
+    // Log FormData contents
+    for (let [key, value] of formData.entries()) {
+      console.log(key, value);
+    }
+
+    // Create candidate
+    const candidateRes = await axios.post('http://127.0.0.1:8000/api/candidate', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+
+    console.log('Candidate registration response:', candidateRes);
+
+    if (candidateRes.status !== 201) {
+      throw new Error('Candidate registration failed');
+    }
+
+    onClose();
+    reset();
+  } catch (err) {
+      console.error('Full error:', err);
+      console.error('Error response data:', err.response?.data);
+      setError('root', {
+        type: 'manual',
+        message: err.response?.data?.message || err.message || 'Registration failed. Please try again.'
+      });
+    }
+};
 
   if (!isOpen) return null;
 
   return (
     <Modal title="Register New Candidate" onClose={onClose}>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Image Upload */}
-        <div className="flex flex-col items-center mb-4">
+        <div className="col-span-2 flex flex-col items-center mb-4">
           <div className="w-24 h-24 rounded-full bg-gray-200 mb-2 overflow-hidden border border-gray-300">
-            {imagePreview ? (
-              <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+            {watch('image')?.length > 0 ? (
+              <img 
+                src={URL.createObjectURL(watch('image')[0])} 
+                alt="Preview" 
+                className="w-full h-full object-cover" 
+              />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-gray-400">
                 No Image
@@ -71,172 +198,269 @@ const [imagePreview, setImagePreview] = useState(initialData?.image || null);
           </div>
           <label className="cursor-pointer text-sm">
             <span className="text-purple-600 hover:text-purple-800 px-3 py-1 border border-blue-200 rounded-md">
-              {imagePreview ? 'Change Photo' : 'Upload Photo'}
+              {watch('image')?.length > 0 ? 'Change Photo' : 'Upload Photo'}
             </span>
             <input
               type="file"
               accept="image/*"
-              onChange={handleImageChange}
+              {...register('image')}
               className="hidden"
             />
           </label>
         </div>
 
         {/* Name Fields */}
-        <div className="grid grid-cols-3 gap-3">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              First Name 
-            </label>
-            <input
-              type="text"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleChange}
-              className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-purple-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Middle Name
-            </label>
-            <input
-              type="text"
-              name="middleName"
-              value={formData.middleName}
-              onChange={handleChange}
-              className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-purple-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Last Name 
-            </label>
-            <input
-              type="text"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleChange}
-              className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-purple-500"
-              required
-            />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+          <input
+            {...register('firstName')}
+            className={`w-full border rounded h-10 px-2 ${
+              errors.firstName ? 'border-red-500' : 'border-gray-300'
+            }`}
+          />
+          {errors.firstName && <p className="text-red-500 text-sm">{errors.firstName.message}</p>}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Middle Name</label>
+          <input
+            {...register('middleName')}
+            className="w-full border border-gray-300 rounded h-10 px-2"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+          <input
+            {...register('lastName')}
+            className={`w-full border rounded h-10 px-2 ${
+              errors.lastName ? 'border-red-500' : 'border-gray-300'
+            }`}
+          />
+          {errors.lastName && <p className="text-red-500 text-sm">{errors.lastName.message}</p>}
+        </div>
+
+        {/* Gender */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+          <div className="flex gap-4 mt-2">
+            {['Male', 'Female'].map((gender) => (
+              <label key={gender} className="flex items-center">
+                <input
+                  type="radio"
+                  value={gender}
+                  {...register('gender')}
+                  className="mr-2"
+                />
+                {gender}
+              </label>
+            ))}
           </div>
         </div>
 
-        {/* Gender and Birth Date */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Gender 
-            </label>
-            <select
-              name="gender"
-              value={formData.gender}
-              onChange={handleChange}
-              className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-purple-500"
-              required
-            >
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Birth Date 
-            </label>
-            <input
-              type="date"
-              name="birthDate"
-              value={formData.birthDate}
-              onChange={handleChange}
-              className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-purple-500"
-              required
-            />
-          </div>
+        {/* Birth Date */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Birth Date</label>
+          <input
+            type="date"
+            {...register('birthDate')}
+            className={`w-full border rounded h-10 px-2 ${
+              errors.birthDate ? 'border-red-500' : 'border-gray-300'
+            }`}
+          />
+          {errors.birthDate && <p className="text-red-500 text-sm">{errors.birthDate.message}</p>}
         </div>
 
         {/* Residence Duration */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Duration of Residence 
-            </label>
-            <div className="flex">
-              <input
-                type="number"
-                name="residenceDuration"
-                value={formData.residenceDuration}
-                onChange={handleChange}
-                className="w-3/4 p-2 text-sm border border-gray-300 rounded-l-md focus:ring-1 focus:ring-purple-500"
-                required
-              />
-              <select
-                name="residenceUnit"
-                value={formData.residenceUnit}
-                onChange={handleChange}
-                className="w-1/4 p-2 text-sm border border-l-0 border-gray-300 rounded-r-md focus:ring-1 focus:ring-purple-500"
-              >
-                <option value="months">Months</option>
-                <option value="years">Years</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Home Number
-            </label>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Duration of Residence</label>
+          <div className="flex">
             <input
-              type="text"
-              name="homeNo"
-              value={formData.homeNo}
-              onChange={handleChange}
-              className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-purple-500"
+              type="number"
+              {...register('residenceDuration', { valueAsNumber: true })}
+              className={`w-3/4 border rounded-l h-10 px-2 ${
+                errors.residenceDuration ? 'border-red-500' : 'border-gray-300'
+              }`}
             />
+            <select
+              {...register('residenceUnit')}
+              className="w-1/4 border border-l-0 border-gray-300 rounded-r h-10 px-2"
+            >
+              <option value="months">Months</option>
+              <option value="years">Years</option>
+            </select>
           </div>
+          {errors.residenceDuration && <p className="text-red-500 text-sm">{errors.residenceDuration.message}</p>}
         </div>
 
-        {/* Disability Information */}
+        {/* Home Number */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Disability Status 
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Home Number</label>
+          <input
+            {...register('homeNo')}
+            className="w-full border border-gray-300 rounded h-10 px-2"
+          />
+        </div>
+
+        {/* Disability */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Disability Status</label>
           <select
-            name="disability"
-            value={formData.disability}
-            onChange={handleChange}
-            className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-purple-500 mb-2"
-            required
+            {...register('disability')}
+            className={`w-full border rounded h-10 px-2 ${
+              errors.disability ? 'border-red-500' : 'border-gray-300'
+            }`}
           >
-            <option value="None">No Disability</option>
-            <option value="Visual">Visual Impairment</option>
-            <option value="Hearing">Hearing Impairment</option>
-            <option value="Physical">Physical Disability</option>
-            <option value="Intellectual">Intellectual Disability</option>
-            <option value="Other">Other</option>
+            {['None', 'Visual', 'Hearing', 'Physical', 'Intellectual', 'Other'].map((type) => (
+              <option key={type} value={type}>{type}</option>
+            ))}
           </select>
-          
-          {formData.disability !== 'None' && (
+          {watchDisability === 'Other' && (
             <div className="mt-2">
               <input
-                type="text"
-                name="disabilityType"
-                value={formData.disabilityType}
-                onChange={handleChange}
-                className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-purple-500"
+                {...register('disabilityType')}
+                className={`w-full border rounded h-10 px-2 ${
+                  errors.disabilityType ? 'border-red-500' : 'border-gray-300'
+                }`}
                 placeholder="Specify disability type"
               />
+              {errors.disabilityType && <p className="text-red-500 text-sm">{errors.disabilityType.message}</p>}
             </div>
           )}
         </div>
-        {/* Form Actions */}
-        <div className="justify-self-end space-x-3 pt-4 border-t border-gray-200 mt-6">
-          <button 
-            type="submit"
-            className="px-4 py-2 text-sm bg-purple-800 text-white rounded-md hover:bg-purple-600"
+
+        {/* Candidate Type and Party */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Candidate Type</label>
+          <div className="flex gap-4">
+            {['individual', 'party'].map((type) => (
+              <label key={type} className="flex items-center">
+                <input
+                  type="radio"
+                  value={type}
+                  {...register('candidate_type')}
+                  className="mr-2"
+                />
+                {type.charAt(0).toUpperCase() + type.slice(1)}
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {watchCandidateType === 'party' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Political Party</label>
+            <select
+              {...register('party_id')}
+              className={`w-full border rounded h-10 px-2 ${
+                errors.party_id ? 'border-red-500' : 'border-gray-300'
+              }`}
+            >
+              <option value="">Select Party</option>
+              {parties.map(party => (
+                <option key={party.id} value={party.id}>{party.name}</option>
+              ))}
+            </select>
+            {errors.party_id && <p className="text-red-500 text-sm">{errors.party_id.message}</p>}
+          </div>
+        )}
+
+        {/* User Account Fields */}
+        <div className="col-span-2 border-t border-gray-200 pt-4 mt-2">
+          <h3 className="font-medium text-gray-700 mb-2">Account Information</h3>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input
+            type="email"
+            {...register('email')}
+            className={`w-full border rounded h-10 px-2 ${
+              errors.email ? 'border-red-500' : 'border-gray-300'
+            }`}
+          />
+          {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+          <input
+            {...register('phoneNumber')}
+            className={`w-full border rounded h-10 px-2 ${
+              errors.phoneNumber ? 'border-red-500' : 'border-gray-300'
+            }`}
+          />
+          {errors.phoneNumber && <p className="text-red-500 text-sm">{errors.phoneNumber.message}</p>}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+          <input
+            {...register('username')}
+            className={`w-full border rounded h-10 px-2 ${
+              errors.username ? 'border-red-500' : 'border-gray-300'
+            }`}
+          />
+          {errors.username && <p className="text-red-500 text-sm">{errors.username.message}</p>}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+          <input
+            type="password"
+            {...register('password')}
+            className={`w-full border rounded h-10 px-2 ${
+              errors.password ? 'border-red-500' : 'border-gray-300'
+            }`}
+          />
+          {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+          <input
+            type="password"
+            {...register('password_confirmation')}
+            className={`w-full border rounded h-10 px-2 ${
+              errors.password_confirmation ? 'border-red-500' : 'border-gray-300'
+            }`}
+          />
+          {errors.password_confirmation && (
+            <p className="text-red-500 text-sm">{errors.password_confirmation.message}</p>
+          )}
+        </div>
+
+        {/* Voting Date */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Voting Date</label>
+          <select
+            {...register('voting_date_id')}
+            className={`w-full border rounded h-10 px-2 ${
+              errors.voting_date_id ? 'border-red-500' : 'border-gray-300'
+            }`}
           >
-            Save Candidate
+            <option value="">Select Voting Date</option>
+            {votingDates.map(date => (
+              <option key={date.id} value={date.id}>{date.title}</option>
+            ))}
+          </select>
+          {errors.voting_date_id && <p className="text-red-500 text-sm">{errors.voting_date_id.message}</p>}
+        </div>
+
+        {/* Hidden constituency_id field */}
+        <input type="hidden" {...register('constituency_id')} />
+
+        {/* Error & Submit */}
+        {errors.root && (
+          <p className="text-red-600 text-center col-span-2">{errors.root.message}</p>
+        )}
+        <div className="col-span-2 flex justify-end mt-6">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700"
+          >
+            {isSubmitting ? 'Registering...' : 'Register Candidate'}
           </button>
         </div>
       </form>
@@ -247,135 +471,6 @@ const [imagePreview, setImagePreview] = useState(initialData?.image || null);
 CreateCandidateForm.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  onSubmit: PropTypes.func.isRequired,
-  initialData: PropTypes.object,
 };
 
 export default CreateCandidateForm;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import PropTypes from 'prop-types';
-// import { useState } from 'react';
-// import Modal from './ui/FormModal';
-
-// const CreateCandidateForm = ({ isOpen, onClose, onSubmit, initialData }) => {
-//   const [formData, setFormData] = useState(initialData || {
-//     firstName: '',
-//     middleName: '',
-//     lastName: '',
-//     gender: 'Male',
-//     birthDate: '',
-//     residenceDuration: '',
-//     residenceUnit: 'years',
-//     homeNo: '',
-//     disability: 'None',
-//     disabilityType: '',
-//     image: null
-//   });
-
-//   const handleChange = (e) => {
-//     const { name, value } = e.target;
-//     setFormData(prev => ({ ...prev, [name]: value }));
-//   };
-
-//   const handleImageChange = (e) => {
-//     const file = e.target.files[0];
-//     if (file) {
-//       setFormData(prev => ({ ...prev, image: file }));
-//     }
-//   };
-
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-//     onSubmit(formData);
-//     setFormData({
-//       firstName: '',
-//       middleName: '',
-//       lastName: '',
-//       gender: 'Male',
-//       birthDate: '',
-//       residenceDuration: '',
-//       residenceUnit: 'years',
-//       homeNo: '',
-//       disability: 'None',
-//       disabilityType: '',
-//       image: null
-//     });
-//   };
-
-//   if (!isOpen) return null;
-
-//   return (
-//     <Modal title="Register New Candidate" onClose={onClose}>
-//       <form onSubmit={handleSubmit} className="space-y-4">
-//         {/* Simplified Image Upload */}
-//         <div className="mb-4">
-//           <label className="block text-sm font-medium text-gray-700 mb-1">
-//             Candidate Photo
-//           </label>
-//           <div className="flex items-center">
-//             <label className="cursor-pointer bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm">
-//               <span className="text-purple-600 hover:text-purple-800">
-//                 {formData.image ? 'Change Photo' : 'Upload Photo'}
-//               </span>
-//               <input
-//                 type="file"
-//                 accept="image/*"
-//                 onChange={handleImageChange}
-//                 className="hidden"
-//               />
-//             </label>
-//             {formData.image && (
-//               <span className="ml-3 text-sm text-gray-500">
-//                 {formData.image.name}
-//               </span>
-//             )}
-//           </div>
-//         </div>
-
-//         {/* Rest of your form fields remain the same */}
-//         {/* ... */}
-//       </form>
-//     </Modal>
-//   );
-// };
-
-// CreateCandidateForm.propTypes = {
-//   isOpen: PropTypes.bool.isRequired,
-//   onClose: PropTypes.func.isRequired,
-//   onSubmit: PropTypes.func.isRequired,
-//   initialData: PropTypes.object,
-// };
-
-// export default CreateCandidateForm;

@@ -4,7 +4,7 @@ import DataTable from '../component/ui/Table';
 import CreateConstituencyForm from './CreateConstituencyForm';
 import useConstituencyStore from '../store/constituencyStore'; 
 import EditConstituencyForm from './EditConstituencyForm'; 
-import DeleteConfirmationModal from './ui/DeleteConfirmationModal';
+// import DeleteConfirmationModal from './ui/DeleteConfirmationModal';
 
 const ConstituencyList = () => { 
   const {
@@ -17,10 +17,10 @@ const ConstituencyList = () => {
     openEditForm,
     closeEditForm,
     selectedConstituency,
-    deleteModal,
+    // deleteModal,
     openDeleteModal,
-    closeDeleteModal,
-    confirmDeleteConstituency
+    // closeDeleteModal,
+    // confirmDeleteConstituency
   } = useConstituencyStore();
 
   useEffect(() => {
@@ -90,13 +90,13 @@ const ConstituencyList = () => {
       />
 
       {/* Delete Modal */}
-      <DeleteConfirmationModal
+      {/* <DeleteConfirmationModal
         isOpen={deleteModal.isOpen}
         onClose={closeDeleteModal}
         onConfirm={confirmDeleteConstituency}
         itemName={deleteModal.constituency?.name || ''}
         isLoading={deleteModal.isLoading}
-      />
+      /> */}
 
     </>
   );

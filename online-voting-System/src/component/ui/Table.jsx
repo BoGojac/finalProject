@@ -1,12 +1,12 @@
 import PropTypes from 'prop-types';
-import { Edit2, Trash2 } from 'lucide-react';
+import { Edit2, } from 'lucide-react';
 // import { useState } from 'react';
 
 const DataTable = ({
   title,
   data,
   columns,
-  onDelete,
+  // onDelete,
   onEdit,
   addButtonText,
   addButtonIcon: AddButtonIcon,
@@ -76,12 +76,12 @@ const DataTable = ({
                       </button>
                     )}
                     
-                    <button 
+                    {/* <button 
                       onClick={() => onDelete(item.id)}
                       className="px-3 py-1 bg-red-100 text-red-800 rounded-md hover:bg-red-200 text-xs flex items-center gap-1"
                     >
                       <Trash2 className="h-3 w-3" /> Delete
-                    </button>
+                    </button> */}
                   </td>
                 </tr>
               ))}

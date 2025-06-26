@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
 import NavBar from './NavBar';
 import Sidebar from './SideBar';
+import Notification from './Notification';
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -43,6 +44,7 @@ const Layout = ({ children }) => {
           sidebarOpen={sidebarOpen}
           isMobile={isMobile}
         />
+         <Notification />
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
           {children}
         </main>

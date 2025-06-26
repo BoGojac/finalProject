@@ -3,7 +3,7 @@ import { Plus } from 'lucide-react';
 import DataTable from '../component/ui/Table';
 import CreatePollingStationForm from './CreatePollingStationForm';
 import EditPollingStationForm from './EditPollingStationForm';
-import DeleteConfirmationModal from './ui/DeleteConfirmationModal';
+// import DeleteConfirmationModal from './ui/DeleteConfirmationModal';
 import usePollingStationStore from '../store/pollingStationStore'; // ✅ Use correct store
 
 const PollingStationList = () => {
@@ -17,10 +17,10 @@ const PollingStationList = () => {
     openEditForm,
     closeEditForm,
     selectedPollingStation,
-    deleteModal,
+    // deleteModal,
     openDeleteModal,
-    closeDeleteModal,
-    confirmDeletePollingStation // ✅ Should be specific to polling station
+    // closeDeleteModal,
+    // confirmDeletePollingStation 
   } = usePollingStationStore();
 
   useEffect(() => {
@@ -91,13 +91,13 @@ const PollingStationList = () => {
       />
 
       {/* Delete Modal */}
-      <DeleteConfirmationModal
+      {/* <DeleteConfirmationModal
         isOpen={deleteModal.isOpen}
         onClose={closeDeleteModal}
         onConfirm={confirmDeletePollingStation}
         itemName={deleteModal.pollingStation?.name || ''}
         isLoading={deleteModal.isLoading}
-      />
+      /> */}
     </>
   );
 };

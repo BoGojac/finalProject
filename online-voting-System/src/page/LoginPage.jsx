@@ -46,10 +46,10 @@ const LoginPage = () => {
         case 'admin':
           navigate('/Admin');
           break;
-        case 'constituency':
+        case 'constituencystaff':
           navigate('/ConstituencyManagers');
           break;
-        case 'pollingstation':
+        case 'pollingstationstaff':
           navigate('/PollingStation');
           break;
         case 'boardmanager':
@@ -64,6 +64,7 @@ const LoginPage = () => {
         default:
           alert('Unknown role: ' + user.role);
       }
+      console.log("logged is user is ===========",user, access_token);
     } catch (error) {
       setError("root", { message: error.response?.data.message || 'Login failed. Please try again later.' });
     }

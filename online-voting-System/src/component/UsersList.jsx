@@ -48,12 +48,12 @@ const UsersList = () => {
     },
   ];
 
-  const handleToggleStatus = async (id, currentStatus) => {
+ const handleToggleStatus = async (id, currentStatus) => {
     try {
       const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
 
       await axios.patch(`http://127.0.0.1:8000/api/user/status/${id}`, {
-        status: newStatus,
+        status: newStatus, // send status here
       });
 
       fetchUsers();

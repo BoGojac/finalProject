@@ -1,330 +1,298 @@
-//import React from 'react';
-import { useState, useEffect } from 'react';
-import { CalendarRange, Users, UserPlus, Edit2, Trash2, Check, X, AlertCircle} from 'lucide-react';
+import { useEffect, useState } from 'react'
+import { usePeriodStore } from '../store/registrationPeriodStore.js'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { CalendarRange, Users, UserPlus, Edit2, Trash2, Check, X, AlertCircle, Loader2 } from 'lucide-react'
+
+const periodSchema = z.object({
+  voting_date_id: z.string().min(1, 'Voting date is required'),
+  beginning_date: z.string().min(1, 'Beginning date is required'),
+  ending_date: z.string().min(1, 'Ending date is required'),
+}).refine(
+  data => new Date(data.ending_date) >= new Date(data.beginning_date),
+  { message: 'Ending date must be after beginning date', path: ['ending_date'] }
+)
 
 const SetRegistrationTimespan = () => {
-  // State for registration periods
-  const [periods, setPeriods] = useState({
-    voter: { startDate: '', endDate: '', isEditing: false, tempStart: '', tempEnd: '' },
-    candidate: { startDate: '', endDate: '', isEditing: false, tempStart: '', tempEnd: '' }
-  });
+  const { votingDates, periods, fetchAll, savePeriod, deletePeriod, isLoading, error } = usePeriodStore()
+  const [editingType, setEditingType] = useState(null) // 'voter' | 'candidate' | null
+  const [success, setSuccess] = useState('')
 
-  const [success, setSuccess] = useState('');
-  const [error, setError] = useState('');
+  useEffect(() => { fetchAll() }, [fetchAll])
 
-  // Load saved periods on component mount
+  const defaultValues = editingType && periods[editingType]
+    ? {
+        voting_date_id: String(periods[editingType].voting_date_id || ''),
+        beginning_date: periods[editingType].beginning_date || '',
+        ending_date: periods[editingType].ending_date || ''
+      }
+    : { voting_date_id: '', beginning_date: '', ending_date: '' }
+
+  const { register, handleSubmit, formState: { errors }, reset } = useForm({
+    resolver: zodResolver(periodSchema),
+    defaultValues,
+  })
+
+  // Reset form when editingType or periods changes
   useEffect(() => {
-    // Mock API call - replace with actual API call
-    const fetchPeriods = async () => {
-      try {
-        // const response = await fetch('/api/registration-periods');
-        // const data = await response.json();
-        const mockData = {
-          voter: { startDate: '2023-06-01', endDate: '2023-06-30' },
-          candidate: { startDate: '2023-05-15', endDate: '2023-05-31' }
-        };
-        
-        setPeriods({
-          voter: { ...mockData.voter, isEditing: false, tempStart: mockData.voter.startDate, tempEnd: mockData.voter.endDate },
-          candidate: { ...mockData.candidate, isEditing: false, tempStart: mockData.candidate.startDate, tempEnd: mockData.candidate.endDate }
-        });
-      } catch (err) {
-        console.error('Error fetching periods:', err);
-      }
-    };
+    reset(defaultValues)
+  }, [editingType, periods, reset])
 
-    fetchPeriods();
-  }, []);
-
-  const handleEdit = (type) => {
-    setPeriods(prev => ({
-      ...prev,
-      [type]: {
-        ...prev[type],
-        isEditing: true,
-        tempStart: prev[type].startDate,
-        tempEnd: prev[type].endDate
-      }
-    }));
-  };
-
-  const handleCancelEdit = (type) => {
-    setPeriods(prev => ({
-      ...prev,
-      [type]: {
-        ...prev[type],
-        isEditing: false
-      }
-    }));
-  };
-
-  const handleSave = async (type) => {
-    const { tempStart, tempEnd } = periods[type];
-
-    if (!tempStart || !tempEnd) {
-      setError('Both start and end dates are required');
-      return;
+  const onSubmit = async (data) => {
+    if (!editingType) return
+    const success = await savePeriod(editingType, data)
+    if (success) {
+      setSuccess(`${editingType.charAt(0).toUpperCase() + editingType.slice(1)} registration period saved`)
+      setEditingType(null)
+      setTimeout(() => setSuccess(''), 3000)
     }
+  }
 
-    if (new Date(tempEnd) < new Date(tempStart)) {
-      setError('End date cannot be before start date');
-      return;
-    }
+  const startEdit = (type) => {
+    setEditingType(type)
+    setSuccess('')
+  }
 
-    try {
-      // Mock API call - replace with actual API call
-      // await fetch('/api/registration-periods', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ [type]: { startDate: tempStart, endDate: tempEnd } })
-      // });
-
-      setPeriods(prev => ({
-        ...prev,
-        [type]: {
-          ...prev[type],
-          startDate: tempStart,
-          endDate: tempEnd,
-          isEditing: false
-        }
-      }));
-
-      setSuccess(`${type.charAt(0).toUpperCase() + type.slice(1)} registration period updated successfully`);
-      setError('');
-      setTimeout(() => setSuccess(''), 3000);
-    } catch (err) {
-      setError('Failed to update period');
-      console.error('Error:', err);
-    }
-  };
+  const cancelEdit = () => {
+    setEditingType(null)
+  }
 
   const handleDelete = async (type) => {
-    try {
-      // Mock API call - replace with actual API call
-      // await fetch('/api/registration-periods', {
-      //   method: 'DELETE',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ type })
-      // });
-
-      setPeriods(prev => ({
-        ...prev,
-        [type]: {
-          startDate: '',
-          endDate: '',
-          isEditing: false,
-          tempStart: '',
-          tempEnd: ''
-        }
-      }));
-
-      setSuccess(`${type.charAt(0).toUpperCase() + type.slice(1)} registration period deleted`);
-      setTimeout(() => setSuccess(''), 3000);
-    } catch (err) {
-      setError('Failed to delete period');
-      console.error('Error:', err);
+    if (!window.confirm(`Delete ${type} registration period?`)) return
+    const success = await deletePeriod(type)
+    if (success) {
+      setSuccess(`${type.charAt(0).toUpperCase() + type.slice(1)} registration period deleted`)
+      setEditingType(null)
+      setTimeout(() => setSuccess(''), 3000)
     }
-  };
+  }
 
-  const handleChange = (type, field, value) => {
-    setPeriods(prev => ({
-      ...prev,
-      [type]: {
-        ...prev[type],
-        [field]: value
-      }
-    }));
-  };
+  const renderPeriodSection = (type, Icon, label) => {
+    const period = periods[type]
+    const isEditing = editingType === type
+
+    return (
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="flex items-center gap-2 text-xl font-semibold text-[#4A2C82]">
+            <Icon className="text-[#6B4AA0]" /> {label}
+          </h3>
+          {!isEditing && period && (
+            <div className="flex gap-2">
+              <button onClick={() => startEdit(type)} title="Edit" disabled={isLoading}>
+                <Edit2 size={18} className="text-[#6B4AA0]" />
+              </button>
+              <button onClick={() => handleDelete(type)} title="Delete" disabled={isLoading}>
+                <Trash2 size={18} className="text-red-600" />
+              </button>
+            </div>
+          )}
+        </div>
+
+        {isEditing ? (
+          <form onSubmit={handleSubmit(onSubmit)} className="grid md:grid-cols-3 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium text-[#5E5E5E] mb-1">Voting Date</label>
+              <select {...register('voting_date_id')} disabled={isLoading} className="w-full px-3 py-2 border rounded">
+                <option value="">Select Voting Date</option>
+                {votingDates.map(d => (
+                  <option key={d.id} value={String(d.id)}>
+                    {new Date(d.date).toLocaleDateString()}
+                  </option>
+                ))}
+              </select>
+              {errors.voting_date_id && <p className="text-red-600 text-sm mt-1">{errors.voting_date_id.message}</p>}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[#5E5E5E] mb-1">Beginning Date</label>
+              <input type="date" {...register('beginning_date')} disabled={isLoading} className="w-full px-3 py-2 border rounded" />
+              {errors.beginning_date && <p className="text-red-600 text-sm mt-1">{errors.beginning_date.message}</p>}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[#5E5E5E] mb-1">Ending Date</label>
+              <input type="date" {...register('ending_date')} disabled={isLoading} className="w-full px-3 py-2 border rounded" />
+              {errors.ending_date && <p className="text-red-600 text-sm mt-1">{errors.ending_date.message}</p>}
+            </div>
+
+            <div className="md:col-span-3 flex gap-2">
+              <button type="submit" disabled={isLoading} className="px-4 py-2 bg-[#6B4AA0] text-white rounded hover:bg-[#5D3A8F] flex items-center gap-1">
+                <Check size={16} /> Save
+              </button>
+              <button type="button" onClick={cancelEdit} disabled={isLoading} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 flex items-center gap-1">
+                <X size={16} /> Cancel
+              </button>
+            </div>
+          </form>
+        ) : period ? (
+          <div className="bg-[#F9F5FF] p-4 rounded border border-[#F0EBF8]">
+            <p><strong>Voting Date:</strong>{' '}
+              {votingDates.find(d => d.id === period.voting_date_id)
+                ? new Date(votingDates.find(d => d.id === period.voting_date_id).date).toLocaleDateString()
+                : 'Not specified'}
+            </p>
+            <p><strong>Period:</strong>{' '}
+              {new Date(period.beginning_date).toLocaleDateString()} – {new Date(period.ending_date).toLocaleDateString()}
+            </p>
+          </div>
+        ) : (
+          <p className="italic text-gray-500">No {label.toLowerCase()} set</p>
+        )}
+      </div>
+    )
+  }
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow-md border border-[#F0EBF8]">
-      <h2 className="text-2xl font-semibold text-[#4A2C82] mb-6 flex items-center gap-2">
+    <div className="p-6 bg-white rounded shadow">
+      <h2 className="flex items-center gap-2 text-2xl font-semibold text-[#4A2C82] mb-6">
         <CalendarRange className="text-[#6B4AA0]" /> Manage Registration Periods
       </h2>
 
       {error && (
-        <div className="mb-4 p-2 bg-[#FFEBEE] text-[#C62828] rounded-md flex items-start gap-2">
-          <AlertCircle className="mt-0.5 flex-shrink-0" size={16} />
-          <span>{error}</span>
+        <div className="mb-4 p-2 bg-[#FFEBEE] text-[#C62828] rounded flex items-center gap-2">
+          <AlertCircle /> {error}
         </div>
       )}
 
       {success && (
-        <div className="mb-4 p-2 bg-[#E8F5E9] text-[#2E7D32] rounded-md border border-[#C8E6C9]">
+        <div className="mb-4 p-2 bg-[#E8F5E9] text-[#2E7D32] rounded border border-[#C8E6C9]">
           {success}
         </div>
       )}
 
-      {/* Voter Registration Section */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-medium text-[#4A2C82] flex items-center gap-2">
-            <Users className="text-[#6B4AA0]" /> Voter Registration Period
-          </h3>
-          {!periods.voter.isEditing && periods.voter.startDate && (
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleEdit('voter')}
-                className="p-1 text-[#6B4AA0] hover:text-[#5D3A8F] transition-colors"
-                title="Edit"
-              >
-                <Edit2 size={18} />
-              </button>
-              <button
-                onClick={() => handleDelete('voter')}
-                className="p-1 text-red-600 hover:text-red-800 transition-colors"
-                title="Delete"
-              >
-                <Trash2 size={18} />
-              </button>
-            </div>
-          )}
-        </div>
-
-        {periods.voter.isEditing ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-[#5E5E5E] mb-1">Start Date</label>
-              <input
-                type="date"
-                value={periods.voter.tempStart}
-                onChange={(e) => handleChange('voter', 'tempStart', e.target.value)}
-                className="w-full px-3 py-2 border border-[#D9D9D9] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6B4AA0] focus:border-[#6B4AA0]"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[#5E5E5E] mb-1">End Date</label>
-              <input
-                type="date"
-                value={periods.voter.tempEnd}
-                onChange={(e) => handleChange('voter', 'tempEnd', e.target.value)}
-                className="w-full px-3 py-2 border border-[#D9D9D9] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6B4AA0] focus:border-[#6B4AA0]"
-                required
-                min={periods.voter.tempStart}
-              />
-            </div>
-            <div className="flex gap-2 col-span-2">
-              <button
-                onClick={() => handleSave('voter')}
-                className="px-3 py-1 bg-[#6B4AA0] text-white rounded-md hover:bg-[#5D3A8F] flex items-center gap-1"
-              >
-                <Check size={16} /> Save
-              </button>
-              <button
-                onClick={() => handleCancelEdit('voter')}
-                className="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 flex items-center gap-1"
-              >
-                <X size={16} /> Cancel
-              </button>
-            </div>
-          </div>
-        ) : periods.voter.startDate ? (
-          <div className="bg-[#F9F5FF] p-4 rounded-lg border border-[#F0EBF8] mb-4">
-            <p className="text-[#5E5E5E]">
-              {new Date(periods.voter.startDate).toLocaleDateString()} to {new Date(periods.voter.endDate).toLocaleDateString()}
-            </p>
-          </div>
-        ) : (
-          <p className="text-gray-500 italic">No voter registration period set</p>
-        )}
-      </div>
-
-      {/* Candidate Registration Section */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-medium text-[#4A2C82] flex items-center gap-2">
-            <UserPlus className="text-[#6B4AA0]" /> Candidate Registration Period
-          </h3>
-          {!periods.candidate.isEditing && periods.candidate.startDate && (
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleEdit('candidate')}
-                className="p-1 text-[#6B4AA0] hover:text-[#5D3A8F] transition-colors"
-                title="Edit"
-              >
-                <Edit2 size={18} />
-              </button>
-              <button
-                onClick={() => handleDelete('candidate')}
-                className="p-1 text-red-600 hover:text-red-800 transition-colors"
-                title="Delete"
-              >
-                <Trash2 size={18} />
-              </button>
-            </div>
-          )}
-        </div>
-
-        {periods.candidate.isEditing ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-[#5E5E5E] mb-1">Start Date</label>
-              <input
-                type="date"
-                value={periods.candidate.tempStart}
-                onChange={(e) => handleChange('candidate', 'tempStart', e.target.value)}
-                className="w-full px-3 py-2 border border-[#D9D9D9] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6B4AA0] focus:border-[#6B4AA0]"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[#5E5E5E] mb-1">End Date</label>
-              <input
-                type="date"
-                value={periods.candidate.tempEnd}
-                onChange={(e) => handleChange('candidate', 'tempEnd', e.target.value)}
-                className="w-full px-3 py-2 border border-[#D9D9D9] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6B4AA0] focus:border-[#6B4AA0]"
-                required
-                min={periods.candidate.tempStart}
-              />
-            </div>
-            <div className="flex gap-2 col-span-2">
-              <button
-                onClick={() => handleSave('candidate')}
-                className="px-3 py-1 bg-[#6B4AA0] text-white rounded-md hover:bg-[#5D3A8F] flex items-center gap-1"
-              >
-                <Check size={16} /> Save
-              </button>
-              <button
-                onClick={() => handleCancelEdit('candidate')}
-                className="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 flex items-center gap-1"
-              >
-                <X size={16} /> Cancel
-              </button>
-            </div>
-          </div>
-        ) : periods.candidate.startDate ? (
-          <div className="bg-[#F9F5FF] p-4 rounded-lg border border-[#F0EBF8] mb-4">
-            <p className="text-[#5E5E5E]">
-              {new Date(periods.candidate.startDate).toLocaleDateString()} to {new Date(periods.candidate.endDate).toLocaleDateString()}
-            </p>
-          </div>
-        ) : (
-          <p className="text-gray-500 italic">No candidate registration period set</p>
-        )}
-      </div>
-
-      {/* Create New Period Section */}
-      <div className="mt-8 border-t border-[#F0EBF8] pt-6">
-        <h3 className="text-lg font-medium text-[#4A2C82] mb-4">Create New Registration Period</h3>
-        <div className="flex gap-4">
-          <button
-            onClick={() => handleEdit('voter')}
-            className="px-4 py-2 bg-[#6B4AA0] text-white rounded-md hover:bg-[#5D3A8F] flex items-center gap-2"
-          >
-            <Users size={16} /> Set Voter Period
-          </button>
-          <button
-            onClick={() => handleEdit('candidate')}
-            className="px-4 py-2 bg-[#6B4AA0] text-white rounded-md hover:bg-[#5D3A8F] flex items-center gap-2"
-          >
-            <UserPlus size={16} /> Set Candidate Period
-          </button>
-        </div>
-      </div>
+      {isLoading && votingDates.length === 0 ? (
+        <Loader2 className="animate-spin mx-auto" size={32} />
+      ) : (
+        <>
+          {renderPeriodSection('voter', Users, 'Voter Registration')}
+          {renderPeriodSection('candidate', UserPlus, 'Candidate Registration')}
+        </>
+      )}
     </div>
-  );
-};
+  )
+}
 
-export default SetRegistrationTimespan;
+export default SetRegistrationTimespan
+
+
+
+
+
+// import { useEffect } from 'react';
+// import { usePeriodStore } from '../store/registrationPeriodStore';
+// import PeriodForm from './PeriodForm';
+// import { Users, UserPlus, Edit2, Trash2, AlertCircle, Loader2 } from 'lucide-react';
+
+// export default function SetRegistrationTimespan() {
+//   const {
+//     votingDates,
+//     periods,
+//     isLoading,
+//     error,
+//     fetchAll,
+//     savePeriod,
+//     deletePeriod,
+//     setEditing,
+//   } = usePeriodStore();
+
+//   useEffect(() => {
+//     fetchAll();
+//   }, [fetchAll]);
+
+//   const renderSection = (type, Icon, label) => {
+//     const period = periods[type];
+
+//     // Debug logs
+//     console.log('votingDates:', votingDates);
+//     console.log('period:', period);
+
+//     const startEdit = () => setEditing(type, { isEditing: true, ...period });
+//     const cancelEdit = () => setEditing(type, { isEditing: false });
+//     const onSubmit = async (data) => {
+//       await savePeriod(type, data);
+//       setEditing(type, { isEditing: false });
+//     };
+//     const onDelete = async () => {
+//       if (window.confirm(`Delete ${label} period?`)) deletePeriod(type);
+//     };
+
+//     const votingDateObject =
+//       Array.isArray(votingDates) && votingDates.length > 0 && period?.voting_date_id
+//         ? votingDates.find((d) => d.id === period.voting_date_id)
+//         : null;
+
+//     return (
+//       <div className="mb-6">
+//         <div className="flex justify-between">
+//           <h3 className="flex items-center gap-2"><Icon /> {label}</h3>
+//           {period?.id && !period.isEditing && (
+//             <div className="flex gap-2">
+//               <button onClick={startEdit}><Edit2 /></button>
+//               <button onClick={onDelete}><Trash2 /></button>
+//             </div>
+//           )}
+//         </div>
+
+//         {period?.isEditing ? (
+//           <PeriodForm
+//             initial={{
+//               voting_date_id: period.voting_date_id?.toString() || '',
+//               beginning_date: period.beginning_date || '',
+//               ending_date: period.ending_date || '',
+//             }}
+//             onSubmit={onSubmit}
+//             onCancel={cancelEdit}
+//             votingDates={votingDates}
+//             isLoading={isLoading}
+//           />
+//         ) : period ? (
+//           <div>
+//             <p>
+//               <strong>Voting Date:</strong>{' '}
+//               {votingDateObject
+//                 ? new Date(votingDateObject.date).toLocaleDateString()
+//                 : 'Unknown'}
+//             </p>
+//             <p>
+//               <strong>Period:</strong>{' '}
+//               {new Date(period.beginning_date).toLocaleDateString()} –{' '}
+//               {new Date(period.ending_date).toLocaleDateString()}
+//             </p>
+//           </div>
+//         ) : (
+//           <p className="italic text-gray-500">Not set</p>
+//         )}
+//       </div>
+//     );
+//   };
+
+//   return (
+//     <div className="p-6 bg-white rounded shadow">
+//       <h2>Manage Registration Periods</h2>
+//       {error && (
+//         <div className="text-red-600 flex items-center gap-2">
+//           <AlertCircle /> {error}
+//         </div>
+//       )}
+//       {isLoading && !periods.voter && !periods.candidate && (
+//         <Loader2 className="animate-spin mx-auto" />
+//       )}
+
+//       {renderSection('voter', Users, 'Voter Registration')}
+//       {renderSection('candidate', UserPlus, 'Candidate Registration')}
+
+//       {/* Buttons to start editing if not yet set */}
+//       {periods.voter && !periods.voter.isEditing && !periods.voter.id && (
+//         <button onClick={() => setEditing('voter', { isEditing: true })}>Set Voter Period</button>
+//       )}
+//       {periods.candidate && !periods.candidate.isEditing && !periods.candidate.id && (
+//         <button onClick={() => setEditing('candidate', { isEditing: true })}>Set Candidate Period</button>
+//       )}
+//     </div>
+//   );
+// }
+
+
+

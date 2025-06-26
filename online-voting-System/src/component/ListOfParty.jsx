@@ -4,7 +4,7 @@ import DataTable from '../component/ui/Table';;
 import CreatePartyForm from './CreatePartyForm';
 import usePartyStore from '../store/partyStore';
 import axios from 'axios';
-import DeleteConfirmationModal from './ui/DeleteConfirmationModal';
+// import DeleteConfirmationModal from './ui/DeleteConfirmationModal';
 import EditPartyForm from './EditPartyForm';
 
 const PartyList = () => {
@@ -19,10 +19,10 @@ const PartyList = () => {
     openEditForm,
     closeEditForm,
     selectedParty,
-    deleteModal,
+    // deleteModal,
     openDeleteModal,
-    closeDeleteModal,
-    confirmDeleteParty
+    // closeDeleteModal,
+    // confirmDeleteParty
   } = usePartyStore();
   
    useEffect(() => {
@@ -70,13 +70,12 @@ const PartyList = () => {
       },
     ];
 
-
-    const handleToggleStatus = async (id, currentStatus) => {
+  const handleToggleStatus = async (id, currentStatus) => {
     try {
       const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
 
       await axios.patch(`http://127.0.0.1:8000/api/party/status/${id}`, {
-        status: newStatus,
+        status: newStatus, // send status here
       });
 
       fetchParties();
@@ -121,13 +120,13 @@ const PartyList = () => {
       />
     
       {/* Delete Modal */}
-      <DeleteConfirmationModal
+      {/* <DeleteConfirmationModal
         isOpen={deleteModal.isOpen}
         onClose={closeDeleteModal}
         onConfirm={confirmDeleteParty}
         itemName={deleteModal.party?.name || ''}
         isLoading={deleteModal.isLoading}
-      />
+      /> */}
     </>
     
   );

@@ -6,6 +6,7 @@ import axios from 'axios';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import useRegionStore from '../store/regionStore';
+import useUIStore from '../store/uiStore';
 import useConstituencyStore from '../store/constituencyStore';
 import usePollingStationStore from '../store/pollingStationStore';
 
@@ -15,8 +16,8 @@ const userSchema = z.object({
   lastName: z.string().min(1, 'Last name is required'),
   gender: z.enum(['male', 'female']),
   email: z.string().email('Invalid email'),
-  phoneNumber: z.string().min(10, 'Phone number required'),
-  username: z.string().min(1, 'Username required'),
+  phoneNumber: z.string().min(10, 'Phone number is required'),
+  username: z.string().min(1, 'Username is required'),
   role: z.enum(['Admin', 'Board Manager', 'Constituency Staff', 'Polling Station Staff']),
   region_id: z.string().optional(),
   constituency_id: z.string().optional(),
@@ -27,6 +28,7 @@ const EditUserForm = ({ isOpen, onClose, user, onSuccess }) => {
   const { regions, fetchRegions } = useRegionStore();
   const { constituencies, fetchConstituencies } = useConstituencyStore();
   const { pollingStations, fetchPollingStations } = usePollingStationStore();
+  const setSuccessMessage = useUIStore((state) => state.setSuccessMessage);
 
   const {
     register,
@@ -39,11 +41,14 @@ const EditUserForm = ({ isOpen, onClose, user, onSuccess }) => {
   } = useForm({
     resolver: zodResolver(userSchema),
     defaultValues: {
-      ...user,
       firstName: user?.first_name || '',
       middleName: user?.middle_name || '',
       lastName: user?.last_name || '',
+      gender: user?.gender || 'male',
+      email: user?.email || '',
       phoneNumber: user?.phone_number || '',
+      username: user?.username || '',
+      role: user?.role || 'Admin',
       region_id: user?.region?.id || '',
       constituency_id: user?.constituency?.id || '',
       polling_station_id: user?.polling_station?.id || '',
@@ -54,21 +59,24 @@ const EditUserForm = ({ isOpen, onClose, user, onSuccess }) => {
   const watchRegion = watch('region_id');
   const watchConstituency = watch('constituency_id');
 
-  useEffect(() => { 
-    fetchRegions(); 
+  useEffect(() => {
+    fetchRegions();
     if (user) {
       reset({
-        ...user,
         firstName: user.first_name,
         middleName: user.middle_name,
         lastName: user.last_name,
+        gender: user.gender,
+        email: user.email,
         phoneNumber: user.phone_number,
+        username: user.username,
+        role: user.role,
         region_id: user.region?.id || '',
         constituency_id: user.constituency?.id || '',
         polling_station_id: user.polling_station?.id || '',
       });
     }
-  }, [fetchRegions, user, reset]);
+  }, [user, fetchRegions, reset]);
 
   useEffect(() => {
     if (['Constituency Staff', 'Polling Station Staff'].includes(watchRole)) {
@@ -83,8 +91,7 @@ const EditUserForm = ({ isOpen, onClose, user, onSuccess }) => {
   }, [watchRole, watchConstituency, fetchPollingStations]);
 
   const onSubmit = async (data) => {
-    if (['Constituency Staff', 'Polling Station Staff'].includes(data.role)) {
-      if (!data.region_id) {
+      if (['Constituency Staff', 'Polling Station Staff'].includes(data.role) && !data.region_id) {
         setError('region_id', { type: 'manual', message: 'Region is required for this role' });
         return;
       }
@@ -96,32 +103,56 @@ const EditUserForm = ({ isOpen, onClose, user, onSuccess }) => {
         setError('polling_station_id', { type: 'manual', message: 'Polling station is required' });
         return;
       }
-    }
 
-    try {
-      await axios.put(`http://127.0.0.1:8000/api/users/${user.id}`, {
-        first_name: data.firstName,
-        middle_name: data.middleName,
-        last_name: data.lastName,
-        gender: data.gender,
-        email: data.email,
-        phone_number: data.phoneNumber,
-        username: data.username,
-        role: data.role,
-        region_id: data.region_id || null,
-        constituency_id: data.constituency_id || null,
-        polling_station_id: data.polling_station_id || null,
-      });
+      try {
+        await axios.put(`http://127.0.0.1:8000/api/user/${user.id}`, {
+          email: data.email,
+          phone_number: data.phoneNumber,
+          username: data.username,
+        });
 
-      onClose();
-      if (onSuccess) onSuccess();
-    } catch (error) {
-      setError('root', { 
-        type: 'manual', 
-        message: error.response?.data?.message || 'Failed to update user' 
-      });
-    }
-  };
+        // Role-specific
+        let endpoint = '';
+        const profileData = {
+          first_name: data.firstName,
+          middle_name: data.middleName,
+          last_name: data.lastName,
+          gender: data.gender,
+        };
+
+        switch (data.role) {
+          case 'Admin':
+            endpoint = `http://127.0.0.1:8000/api/admin/${user.id}`;
+            break;
+          case 'Board Manager':
+            endpoint = `http://127.0.0.1:8000/api/boardmanagers/${user.id}`;
+            break;
+          case 'Constituency Staff':
+            endpoint = `http://127.0.0.1:8000/api/constituencystaff/${user.id}`;
+            profileData.constituency_id = data.constituency_id;
+            break;
+          case 'Polling Station Staff':
+            endpoint = `http://127.0.0.1:8000/api/pollingstationstaff/${user.id}`;
+            profileData.polling_station_id = data.polling_station_id;
+            break;
+        }
+
+        const response = await axios.put(endpoint, profileData);
+
+        // ✅ Use the message here
+        if (response?.data?.message) {
+          setSuccessMessage(response.data.message);
+        }
+
+        if (onSuccess) onSuccess();
+        onClose();
+      } catch (err) {
+        setError('root', {
+          type: 'manual',
+          message: err.response?.data?.message || 'Failed to update user',
+        });
+      }
+    };
 
   if (!isOpen) return null;
 
@@ -138,7 +169,9 @@ const EditUserForm = ({ isOpen, onClose, user, onSuccess }) => {
           label: 'Email', field: 'email'
         }, {
           label: 'Phone Number', field: 'phoneNumber'
-        }, ].map(({ label, field, type = 'text', optional }) => (
+        }, {
+          label: 'Username', field: 'username'
+        }].map(({ label, field, type = 'text', optional }) => (
           <div key={field} className="flex flex-col">
             <label className="text-sm font-medium">{label}</label>
             <input
@@ -156,15 +189,7 @@ const EditUserForm = ({ isOpen, onClose, user, onSuccess }) => {
           <label className="text-sm font-medium">Gender</label>
           <div className="flex gap-4 mt-2">
             {['male', 'female'].map(gender => (
-              <label key={gender} className="flex items-center gap-1">
-                <input 
-                  type="radio" 
-                  value={gender} 
-                  {...register('gender')} 
-                  className="text-purple-600 focus:ring-purple-500" 
-                />
-                {gender.charAt(0).toUpperCase() + gender.slice(1)}
-              </label>
+              <label key={gender}><input type="radio" value={gender} {...register('gender')} className="mr-1" /> {gender}</label>
             ))}
           </div>
         </div>
@@ -172,36 +197,22 @@ const EditUserForm = ({ isOpen, onClose, user, onSuccess }) => {
         {/* Role */}
         <div className="flex flex-col">
           <label className="text-sm font-medium">Role</label>
-          <select 
-            {...register('role')} 
-            className={`w-full border rounded h-10 px-2 ${errors.role ? 'border-red-500' : 'border-gray-300'}`}
-            onChange={(e) => {
-              setValue('role', e.target.value);
-              setValue('region_id', '');
-              setValue('constituency_id', '');
-              setValue('polling_station_id', '');
-            }}
-          >
-            {['admin', 'boardmanager', 'constituency', 'pollingstation'].map(role => (
+          <select {...register('role')} className={`w-full border rounded h-10 px-2`}>
+            {['Admin', 'Board Manager', 'Constituency Staff', 'Polling Station Staff'].map(role => (
               <option key={role} value={role}>{role}</option>
             ))}
           </select>
-          {errors.role && <p className="text-red-500 text-sm">{errors.role.message}</p>}
         </div>
 
         {/* Region */}
         {(watchRole === 'Constituency Staff' || watchRole === 'Polling Station Staff') && (
           <div className="flex flex-col">
             <label className="text-sm font-medium">Region</label>
-            <select 
-              {...register('region_id')} 
-              className={`w-full border rounded h-10 px-2 ${errors.region_id ? 'border-red-500' : 'border-gray-300'}`}
-              onChange={(e) => {
-                setValue('region_id', e.target.value);
-                setValue('constituency_id', '');
-                setValue('polling_station_id', '');
-              }}
-            >
+            <select {...register('region_id')} className="w-full border rounded h-10 px-2" onChange={(e) => {
+              setValue('region_id', e.target.value);
+              setValue('constituency_id', '');
+              setValue('polling_station_id', '');
+            }}>
               <option value="">Select Region</option>
               {regions.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
             </select>
@@ -210,17 +221,13 @@ const EditUserForm = ({ isOpen, onClose, user, onSuccess }) => {
         )}
 
         {/* Constituency */}
-        {(watchRegion && (watchRole === 'Constituency Staff' || watchRole === 'Polling Station Staff')) && (
+        {(watchRegion && ['Constituency Staff', 'Polling Station Staff'].includes(watchRole)) && (
           <div className="flex flex-col">
             <label className="text-sm font-medium">Constituency</label>
-            <select 
-              {...register('constituency_id')} 
-              className={`w-full border rounded h-10 px-2 ${errors.constituency_id ? 'border-red-500' : 'border-gray-300'}`}
-              onChange={(e) => {
-                setValue('constituency_id', e.target.value);
-                setValue('polling_station_id', '');
-              }}
-            >
+            <select {...register('constituency_id')} className="w-full border rounded h-10 px-2" onChange={(e) => {
+              setValue('constituency_id', e.target.value);
+              setValue('polling_station_id', '');
+            }}>
               <option value="">Select Constituency</option>
               {constituencies.filter(c => c.region_id == watchRegion).map(c => (
                 <option key={c.id} value={c.id}>{c.name}</option>
@@ -234,10 +241,7 @@ const EditUserForm = ({ isOpen, onClose, user, onSuccess }) => {
         {watchRole === 'Polling Station Staff' && watchConstituency && (
           <div className="flex flex-col">
             <label className="text-sm font-medium">Polling Station</label>
-            <select 
-              {...register('polling_station_id')} 
-              className={`w-full border rounded h-10 px-2 ${errors.polling_station_id ? 'border-red-500' : 'border-gray-300'}`}
-            >
+            <select {...register('polling_station_id')} className="w-full border rounded h-10 px-2">
               <option value="">Select Polling Station</option>
               {pollingStations.filter(p => p.constituency_id == watchConstituency).map(p => (
                 <option key={p.id} value={p.id}>{p.name}</option>
@@ -247,14 +251,10 @@ const EditUserForm = ({ isOpen, onClose, user, onSuccess }) => {
           </div>
         )}
 
-        {/* Submit */}
-        {errors.root && <p className="text-red-600 text-center col-span-2">{errors.root.message}</p>}
+        {/* Submit Button */}
+        {errors.root && <p className="text-red-600 col-span-2 text-center">{errors.root.message}</p>}
         <div className="col-span-2 flex justify-end mt-6">
-          <button 
-            type="submit" 
-            disabled={isSubmitting} 
-            className="bg-purple-800 text-white px-6 py-2 rounded hover:bg-purple-600 disabled:opacity-50"
-          >
+          <button type="submit" disabled={isSubmitting} className="bg-purple-700 text-white px-6 py-2 rounded hover:bg-purple-800">
             {isSubmitting ? 'Updating...' : 'Update User'}
           </button>
         </div>

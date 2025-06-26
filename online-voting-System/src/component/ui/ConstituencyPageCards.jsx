@@ -24,7 +24,7 @@ const ConstituencyPageCards = () => {
       icon: <UserPlus className="text-blue-600" size={28} />,
       path: "/ConstituencyManagers/register-candidate"
     },
-    {
+    { 
       title: "View Voters",
       description: (
         <div className="space-y-1">
