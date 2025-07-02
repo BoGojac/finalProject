@@ -14,7 +14,7 @@ const userSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   middleName: z.string().optional(),
   lastName: z.string().min(1, 'Last name is required'),
-  gender: z.enum(['male', 'female']),
+  gender: z.enum(['Male', 'Female']),
   email: z.string().email('Invalid email'),
   phoneNumber: z.string().min(10, 'Phone number required'),
   username: z.string().min(1, 'Username required'),
@@ -45,7 +45,7 @@ const CreateUserForm = ({ isOpen, onClose }) => {
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(userSchema),
-    defaultValues: { gender: 'male', role: 'Admin', voting_date_id: '' },
+    defaultValues: { gender: 'Male', role: 'Admin', voting_date_id: '' },
   });
 
   const watchRole = watch('role');
@@ -146,7 +146,7 @@ useEffect(() => {
             <input
               type={type}
               {...register(field)}
-              className={`w-full border rounded h-10 px-2 ${
+              className={`w-full rounded-md border h-10 px-2 ${
                 errors[field] ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder={label}
@@ -162,7 +162,7 @@ useEffect(() => {
           <label className="text-sm font-medium">Voting Date</label>
           <select
             {...register('voting_date_id')}
-            className={`w-full border rounded h-10 px-2 ${
+            className={`w-full rounded-md border h-10 px-2 ${
               errors.voting_date_id ? 'border-red-500' : 'border-gray-300'
             }`}
           >
@@ -183,9 +183,9 @@ useEffect(() => {
         <div className="flex flex-col">
           <label className="text-sm font-medium">Gender</label>
           <div className="flex gap-4 mt-2">
-            {['male', 'female'].map((g) => (
+            {['Male', 'Female'].map((g) => (
               <label key={g}>
-                <input type="radio" value={g} {...register('gender')} className="mr-1" />
+                <input type="radio" value={g} {...register('gender')} className="accent-purple-600 w-5 h-5 mr-1" />
                 {g.charAt(0).toUpperCase() + g.slice(1)}
               </label>
             ))}

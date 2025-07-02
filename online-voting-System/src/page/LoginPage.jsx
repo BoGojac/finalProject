@@ -14,7 +14,7 @@ export const loginSchema = z.object({
 const LoginPage = () => {
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
-  const{  token, admin, board_manager, constituency_staff } = useAuthStore();
+  const{  token, admin, board_manager, constituency_staff, polling_station_staff, candidate, voter} = useAuthStore();
 
   const {
     register,
@@ -45,9 +45,23 @@ const LoginPage = () => {
       const role = user.role.toLowerCase().replace(/\s+/g, '');
       // Redirect based on user role
       switch (role) {
-        case 'admin':
+        case 'admin':{
+              const response = await axios.get('http://127.0.0.1:8000/api/admin-user',
+            {
+              headers: {
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${access_token}`
+              },
+            },
+          );
+          const admin_res  = response.data.data.admin;
+          login(user, access_token, admin_res, null, null, null, null, null);
+          console.log('before navigation:', user, token, admin_res, board_manager, constituency_staff, polling_station_staff, candidate, voter);
           navigate('/Admin');
+           console.log('after navigation:', user, token, admin_res, board_manager, constituency_staff, polling_station_staff, candidate, voter  );
           break;
+        }
+          
         case 'constituencystaff':{
           const response = await axios.get('http://127.0.0.1:8000/api/constituencystaff-user',
             {
@@ -57,26 +71,82 @@ const LoginPage = () => {
               },
             },
           );
-          const constituency_staff_res  = response.data;
-          login(user, access_token, null, null, constituency_staff_res);
-          console.log('before navigation:', user, token, admin, board_manager, constituency_staff_res  );
+          const constituency_staff_res  = response.data.data.constituency_staff;
+          login(user, access_token, null, null, constituency_staff_res, null, null, null);
+          console.log('before navigation:', user, token, admin, board_manager, constituency_staff_res, polling_station_staff, candidate, voter,  );
           navigate('/ConstituencyManagers');
-          console.log('after navigation:', user, token, admin, board_manager, constituency_staff_res  );
+          console.log('after navigation:', user, token, admin, board_manager, constituency_staff_res, polling_station_staff, candidate, voter  );
           break;
         }
           
-        case 'pollingstationstaff':
+        case 'pollingstationstaff':{
+            const response = await axios.get('http://127.0.0.1:8000/api/pollingstationstaff-user',
+            {
+              headers: {
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${access_token}`
+              },
+            },
+          );
+          const polling_station_staff_res = response.data.data.polling_station_staff;
+          login(user, access_token, null, null, null, polling_station_staff_res, null, null);
+          console.log('before navigation:', user, token, admin, board_manager, constituency_staff, polling_station_staff_res, candidate, voter);
           navigate('/PollingStation');
+           console.log('after navigation:', user, token, admin, board_manager, constituency_staff, polling_station_staff_res, candidate, voter  );
           break;
-        case 'boardmanager':
-          navigate('/BoardManagers');
+        }
+          
+        case 'boardmanager':{
+          const response = await axios.get('http://127.0.0.1:8000/api/boardmanagers-user',
+            {
+              headers: {
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${access_token}`
+              },
+            },
+          );
+          const  board_manager_res  = response.data.data.board_manager;
+          login(user, access_token, null,  board_manager_res, null, null, null, null);
+          console.log('before navigation:', user, token, admin, board_manager_res, constituency_staff, polling_station_staff, candidate, voter);
+           navigate('/BoardManagers');
+            console.log('after navigation:', user, token, admin, board_manager_res, constituency_staff, polling_station_staff, candidate, voter  );
           break;
-        case 'voter':
+        }
+         
+        case 'voter':{
+          const response = await axios.get('http://127.0.0.1:8000/api/voter-user',
+            {
+              headers: {
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${access_token}`
+              },
+            },
+          );
+          const voter_res  = response.data.data.voter;
+          login(user, access_token, null, null, null, null, null, voter_res);
+          console.log('before navigation:', user, token, admin, board_manager, constituency_staff, polling_station_staff, candidate, voter_res);
           navigate('/VotersPage');
+           console.log('after navigation:', user, token, admin, board_manager, constituency_staff, polling_station_staff, candidate, voter_res  );
           break;
-        case 'candidate':
+        }
+          
+        case 'candidate':{
+          const response = await axios.get('http://127.0.0.1:8000/api/candidate-user',
+            {
+              headers: {
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${access_token}`
+              },
+            },
+          );
+          const candidate_res  = response.data.data.candidate;
+          login(user, access_token, null, null, null, null, candidate_res, null);
+          console.log('before navigation:', user, token, admin, board_manager, constituency_staff, polling_station_staff, candidate_res, voter);
           navigate('/Candidates');
+           console.log('after navigation:', user, token, admin, board_manager, constituency_staff, polling_station_staff, candidate_res, voter  );
           break;
+        }
+          
         default:
           alert('Unknown role: ' + user.role);
       }

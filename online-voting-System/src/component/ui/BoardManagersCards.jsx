@@ -76,7 +76,7 @@ const BoardManagerPageCards = () => {
     },
     {
       title: "Set Registration Period",
-      description: "Define voter registration timeframe",
+      description: "Define voter and candidate registration timeframe",
       icon: <Clock className="text-amber-600" size={28} />,
       path: "/boardmanagers/set-registration-timespan"
     },
@@ -88,7 +88,7 @@ const BoardManagerPageCards = () => {
     },
     {
       title: "Override Voting",
-      description: "Abort voting permissions",
+      description: "Abort voting",
       icon: <Undo2 className="text-yellow-600" size={28}/>,
       path: "/boardmanagers/override-voting"
     },

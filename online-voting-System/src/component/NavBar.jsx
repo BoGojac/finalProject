@@ -116,7 +116,7 @@ const userType = pathname.toLowerCase().includes('admin')
               </Link>
               <button
                 onClick={handleLogout}
-                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-red-600"
+                className="flex items-center px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-red-500"
               >
                 <LogOut className="w-4 h-4 mr-3" />
                 Logout

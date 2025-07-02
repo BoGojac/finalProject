@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Edit2 } from 'lucide-react';
 import DataTable from '../component/ui/Table';
 import CreateCandidateForm from './RegisterCandidatedForm';
 import EditCandidateForm from './EditCandidateForm';
@@ -53,52 +53,81 @@ const CandidateList = () => {
         ),
       },
       { key: 'candidate_type', header: 'Candidate Tpye' },
-    {
-      key: 'status',
-      header: 'Status',
-      render: (_, row) => (
-        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-          row.user?.status === 'active'
-            ? 'bg-green-100 text-green-800'
-            : 'bg-red-100 text-red-800'
-        }`}>
-          {row.user?.status ?? 'Unknown'}
-        </span>
-      )
-    }
+      { 
+        key: 'Party_name', 
+        header: 'Party Name', 
+        render: (_, row) => row.party?.name ?? '—' 
+      },
+      {
+        key: 'status',
+        header: 'Status',
+        render: (_, row) => (
+          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+            row.user?.status === 'active'
+              ? 'bg-green-100 text-green-800'
+              : 'bg-red-100 text-red-800'
+          }`}>
+            {row.user?.status ?? 'Unknown'}
+          </span>
+        )
+      }
 
   ];
 
   return (
     <div className="p-4">
       <DataTable
-        title="Candidate Management"
-        data={candidates}
-        columns={columns}
-        onEdit={(id) => {
-          const item = candidates.find((c) => c.id === id);
-          openEditForm(item);
-        }}
-        addButtonText="Register New Candidate"
-        addButtonIcon={Plus}
-        onAdd={openAddForm}
-        onToggleStatus={(id, status) => toggleStatus(id, status)}
+          title="Candidate Management"
+          data={candidates}
+          columns={columns}
+          onEdit={(id) => {
+            const item = candidates.find((c) => c.id === id);
+            openEditForm(item);
+          }}
+          addButtonText="Register New Candidate"
+          addButtonIcon={Plus}
+          onAdd={openAddForm}
+          onToggleStatus={(id, status) => toggleStatus(id, status)}
+          renderActions={(item) => (
+            <>
+              <button
+                onClick={() => openEditForm(item)}
+                className="px-3 py-1 bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200 text-xs flex items-center gap-1"
+              >
+                <Edit2 className="h-3 w-3" /> Edit
+              </button>
+
+              {item.user && (
+                <button
+                  onClick={() => toggleStatus(item.user.id, item.user.status)}
+                  className={`px-3 py-1 rounded-md text-xs flex items-center gap-1 ${
+                    item.user.status === 'active'
+                      ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
+                      : 'bg-green-100 text-green-800 hover:bg-green-200'
+                  }`}
+                >
+                  {item.user.status === 'active' ? 'Deactivate' : 'Activate'}
+                </button>
+              )}
+            </>
+          )}
       />
 
-      <CreateCandidateForm
-        isOpen={isAddFormOpen}
-        onClose={closeAddForm}
-        onSubmit={fetchCandidates}
-      />
 
-      <EditCandidateForm
-        isOpen={isEditFormOpen}
-        onClose={closeEditForm}
-        onSuccess={fetchCandidates}
-        candidate={selectedCandidate}
-      />
-    </div>
-  );
+    <CreateCandidateForm
+      isOpen={isAddFormOpen}
+      onClose={closeAddForm} 
+      onSubmit={fetchCandidates}
+    />
+
+    <EditCandidateForm
+      isOpen={isEditFormOpen}
+      onClose={closeEditForm}
+      onSuccess={fetchCandidates}
+      candidate={selectedCandidate}
+    />
+  </div>
+);
 };
 
 export default CandidateList;

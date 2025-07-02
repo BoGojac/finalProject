@@ -151,20 +151,21 @@ const Sidebar = ({ sidebarOpen, isMobile, toggleSidebar }) => {
 
 	const votersLinks = [
 		{
-			to: '/voters',
+			to: '/VotersPage',
 			label: 'Dashboard',
 			icon: <LayoutDashboard size={18} />,
 		},
 		{
-			to: '/voters/view-candidates',
+			to: '/VotersPage/vote',
+			label: 'Cast Your Vote',
+			icon: <Vote size={18} />, 
+		},
+		{
+			to: '/voters/register-candidate',
 			label: 'View Candidates',
 			icon: <UserSearch size={18} />, 
 		},
-		{
-			to: '/voters/view-candidates',
-			label: 'Vote',
-			icon: <Vote size={18} />, 
-		},
+		
 		{
 			to: '/voters/view-voters',
 			label: 'View Voters',
@@ -224,7 +225,7 @@ const Sidebar = ({ sidebarOpen, isMobile, toggleSidebar }) => {
       {/* Overlay for mobile */}
       {isMobile && sidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          className="fixed inset-0 bg-transparent bg-opacity-50 z-40"
           onClick={toggleSidebar}
         />
       )}

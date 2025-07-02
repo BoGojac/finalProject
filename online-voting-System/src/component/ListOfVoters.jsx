@@ -1,88 +1,51 @@
-import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { useEffect } from 'react';
+import { Plus, Edit2 } from 'lucide-react';
 import DataTable from '../component/ui/Table';
 import RegisterVoterForm from './RegisterVoter';
+import EditVoterForm from './EditVoterForm';
+import useVoterStore from '../store/voterStore';
 
 const VoterList = () => {
-  const [voters, setVoters] = useState([
-    { 
-      id: 1, 
-      name: 'Alemu Desta', 
-      gender: 'Male', 
-      registration_date: '3/15/2023', 
-      birth_date: '5/22/1990',
-      disability: 'None',
-      duration_of_residence: '5 years',
-      email: 'alemu.desta@example.com',
-      phone: '+251911223344',
-      status: 'active'
-    },
-    { 
-      id: 2, 
-      name: 'Birtukan Hailu', 
-      gender: 'Female', 
-      registration_date: '2/10/2023', 
-      birth_date: '8/30/1985',
-      disability: 'Hearing Impairment',
-      duration_of_residence: '8 years',
-      email: 'birtukan.h@example.com',
-      phone: '+251922334455',
-      status: 'inactive'
-    },
-    // ... other voters with status field
-  ]);
+  const {
+    voters,
+    fetchVoters,
+    isAddFormOpen,
+    isEditFormOpen,
+    openAddForm,
+    closeAddForm,
+    openEditForm,
+    closeEditForm,
+    selectedVoter,
+    toggleStatus,
+  } = useVoterStore();
 
-  const [isFormOpen, setIsFormOpen] = useState(false);
-
-  const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this voter?')) {
-      setVoters(voters.filter(voter => voter.id !== id));
-    }
-  };
-
-  const handleEdit = (id) => {
-    console.log(`Edit voter with ID: ${id}`);
-    // Implement edit functionality
-  };
-
-  const handleToggleStatus = (voterId, currentStatus) => {
-    setVoters(voters.map(voter => 
-      voter.id === voterId 
-        ? { ...voter, status: currentStatus === 'active' ? 'inactive' : 'active' } 
-        : voter
-    ));
-  };
-
-  const handleAddVoter = (newVoter) => {
-    setVoters(prev => [
-      ...prev,
-      {
-        ...newVoter,
-        id: Math.max(...prev.map(v => v.id)) + 1,
-        registration_date: new Date().toLocaleDateString(),
-        status: 'active' // New voters are active by default
-      }
-    ]);
-    setIsFormOpen(false);
-  };
+  useEffect(() => {
+    fetchVoters();
+  }, [fetchVoters]);
 
   const columns = [
-    { key: 'name', header: 'Name' },
+    {
+      key: 'name',
+      header: 'Name',
+      render: (_, row) => [row.first_name, row.middle_name, row.last_name].filter(Boolean).join(' ')
+    },
     { key: 'gender', header: 'Gender' },
     { key: 'registration_date', header: 'Registration Date' },
     { key: 'birth_date', header: 'Birth Date' },
     { key: 'disability', header: 'Disability' },
+    { key: 'disability_type', header: 'Disability Type' },
     { key: 'duration_of_residence', header: 'Duration of Residence' },
-    { key: 'email', header: 'Email' },
-    { key: 'phone', header: 'Phone' },
-    { 
-      key: 'status', 
+    { key: 'home_number', header: 'Home Number' },
+    {
+      key: 'status',
       header: 'Status',
-      render: (value) => (
+      render: (_, row) => (
         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-          value === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+          row.user?.status === 'active'
+            ? 'bg-green-100 text-green-800'
+            : 'bg-red-100 text-red-800'
         }`}>
-          {value}
+          {row.user?.status ?? 'Unknown'}
         </span>
       )
     }
@@ -94,18 +57,49 @@ const VoterList = () => {
         title="Voter Management"
         data={voters}
         columns={columns}
-        onDelete={handleDelete}
-        onEdit={handleEdit}
+        onEdit={(id) => {
+          const voter = voters.find(v => v.id === id);
+          openEditForm(voter);
+        }}
         addButtonText="Register New Voter"
         addButtonIcon={Plus}
-        onAdd={() => setIsFormOpen(true)}
-        onToggleStatus={handleToggleStatus}
+        onAdd={openAddForm}
+        onToggleStatus={(id, status) => toggleStatus(id, status)}
+        renderActions={(item) => (
+          <>
+            <button
+              onClick={() => openEditForm(item)}
+              className="px-3 py-1 bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200 text-xs flex items-center gap-1"
+            >
+              <Edit2 className="h-3 w-3" /> Edit
+            </button>
+            {item.user && (
+              <button
+                onClick={() => toggleStatus(item.user.id, item.user.status)}
+                className={`px-3 py-1 rounded-md text-xs flex items-center gap-1 ${
+                  item.user.status === 'active'
+                    ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
+                    : 'bg-green-100 text-green-800 hover:bg-green-200'
+                }`}
+              >
+                {item.user.status === 'active' ? 'Deactivate' : 'Activate'}
+              </button>
+            )}
+          </>
+        )}
       />
-      
+
       <RegisterVoterForm
-        isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        onSubmit={handleAddVoter}
+        isOpen={isAddFormOpen}
+        onClose={closeAddForm}
+        onSubmit={fetchVoters}
+      />
+
+      <EditVoterForm
+        isOpen={isEditFormOpen}
+        onClose={closeEditForm}
+        onSuccess={fetchVoters}
+        voter={selectedVoter}
       />
     </div>
   );

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import axios from 'axios';
 
-const useCandidateStore = create((set) => ({
+const useCandidateStore = create((set, get) => ({
   candidates: [],
   selectedCandidate: null,
   isAddFormOpen: false,
@@ -23,14 +23,18 @@ const useCandidateStore = create((set) => ({
     set({ selectedCandidate: candidate, isEditFormOpen: true }),
   closeEditForm: () => set({ isEditFormOpen: false, selectedCandidate: null }),
 
-  toggleStatus: async (id, currentStatus) => {
+  toggleStatus: async (userId, currentStatus) => {
     try {
-      await axios.patch(`http://127.0.0.1:8000/api//user/status/${id}`, {
-        status: currentStatus === 'active' ? 'inactive' : 'active',
+      const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+
+      await axios.patch(`http://127.0.0.1:8000/api/user/status/${userId}`, {
+        status: newStatus,
       });
-      await useCandidateStore.getState().fetchCandidates();
-    } catch (err) {
-      console.error('Failed to toggle status:', err);
+
+      // Refresh candidates so updated user status reflects
+      await get().fetchCandidates();
+    } catch (error) {
+      console.error('Failed to toggle candidate status', error.response?.data || error.message);
     }
   },
 }));

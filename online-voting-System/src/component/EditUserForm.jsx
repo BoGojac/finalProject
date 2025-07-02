@@ -189,7 +189,7 @@ const EditUserForm = ({ isOpen, onClose, user, onSuccess }) => {
           <label className="text-sm font-medium">Gender</label>
           <div className="flex gap-4 mt-2">
             {['male', 'female'].map(gender => (
-              <label key={gender}><input type="radio" value={gender} {...register('gender')} className="mr-1" /> {gender}</label>
+              <label key={gender}><input type="radio" value={gender} {...register('gender')} className="mr-1 accent-purple-600 w-5 h-5" /> {gender}</label>
             ))}
           </div>
         </div>

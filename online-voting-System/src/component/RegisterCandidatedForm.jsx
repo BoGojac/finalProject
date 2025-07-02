@@ -65,7 +65,7 @@ const CreateCandidateForm = ({ isOpen, onClose }) => {
     register,
     handleSubmit,
     watch,
-    // setValue,
+    setValue,
     setError,
     formState: { errors, isSubmitting }
   } = useForm({
@@ -89,97 +89,92 @@ const CreateCandidateForm = ({ isOpen, onClose }) => {
     }
   }, [isOpen, fetchVotingDates, fetchParties, fetchConstituencies]);
 
-  // useEffect(() => {
-  //   if (user?.id) {
-  //     setValue('constituency_id', user.constituency_id.toString()); // Ensure it's a string
-  //   }
-  // }, [user, setValue]);
-    
-  //   useEffect(() => {
-  //   console.log("Hello:");
-  // }, []);
+  useEffect(() => {
+  if (constituency_staff?.constituency_id) {
+    setValue('constituency_id', constituency_staff.constituency_id.toString());
+  }
+}, [constituency_staff, setValue]);
 
-  const onSubmit = async (data) => {
-     console.log("Submitted");
-     console.log('Form data before submission:', data);
-  try {
-    // First create the user
-    const userRes = await axios.post('http://127.0.0.1:8000/api/userregister', {
-      email: data.email,
-      phone_number: data.phoneNumber,
-      username: data.username,
-      password: data.password,
-      password_confirmation: data.password_confirmation,
-      role: 'Candidate',
-      voting_date_id: data.voting_date_id,
-      status: 'active'
-    });
+    const onSubmit = async (data) => {
+      console.log("Submitted");
+      console.log('Form data before submission:', data);
 
-    console.log('User registration response:', userRes);
+      try {
+        // Step 1: Register the user
+        const userRes = await axios.post('http://127.0.0.1:8000/api/userregister', {
+          email: data.email,
+          phone_number: data.phoneNumber,
+          username: data.username,
+          password: data.password,
+          password_confirmation: data.password_confirmation,
+          role: 'Candidate',
+          voting_date_id: data.voting_date_id,
+          status: 'active'
+        }, {
+            headers: {
+              'Accept': 'application/json',
+            }
+          });
 
-      if (userRes.status !== 201 && userRes.status !== 200) {
-        throw new Error('User registration failed');
+        if (userRes.status !== 201 && userRes.status !== 200) {
+          throw new Error('User registration failed');
+        }
+
+        const userId = userRes.data.user.id;
+
+        // Step 2: Prepare candidate FormData
+        const formData = new FormData();
+        formData.append('user_id', userId);
+        formData.append('first_name', data.firstName);
+        formData.append('middle_name', data.middleName || '');
+        formData.append('last_name', data.lastName);
+        formData.append('gender', data.gender);
+        formData.append('birth_date', data.birthDate);
+        formData.append('disability', data.disability);
+        formData.append('disability_type', data.disabilityType || '');
+        formData.append('residence_duration', data.residenceDuration.toString());
+        formData.append('residence_unit', data.residenceUnit);
+        formData.append('home_number', data.homeNo || '');
+        formData.append('candidate_type', data.candidate_type);
+        formData.append('voting_date_id', data.voting_date_id); // optional, if needed in candidate too
+
+        // ✅ Add constituency_id from logged-in constituency_staff
+        if (constituency_staff?.constituency_id) {
+          formData.append('constituency_id', constituency_staff.constituency_id.toString());
+        } else {
+          throw new Error('Constituency ID not found for the logged-in staff.');
+        }
+
+        if (data.candidate_type === 'party') {
+          formData.append('party_id', data.party_id);
+        }
+
+        if (data.image && data.image.length > 0) {
+          formData.append('image', data.image[0]);
+        }
+
+        // Step 3: Register candidate
+        const candidateRes = await axios.post('http://127.0.0.1:8000/api/candidate', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Accept': 'application/json',
+          },
+        }, { timeout: 10000 });
+
+        if (candidateRes.status !== 201) {
+          throw new Error('Candidate registration failed');
+        }
+
+        onClose(); // close modal on success
+
+      } catch (err) {
+        console.error('Error response data:', err.response?.data);
+        setError('root', {
+          type: 'manual',
+          message: err.response?.data?.message || err.message || 'Registration failed.',
+        });
       }
-
-    const userId = userRes.data.user.id;
-    console.log('Created user ID:', userId);
-
-    // Prepare candidate data
-    const formData = new FormData();
-    formData.append('user_id', userId);
-    formData.append('first_name', data.firstName);
-    formData.append('middle_name', data.middleName || '');
-    formData.append('last_name', data.lastName);
-    formData.append('gender', data.gender.toLowerCase());
-    formData.append('birth_date', data.birthDate);
-    formData.append('disability', data.disability);
-    formData.append('disability_type', data.disabilityType || '');
-    formData.append('residence_duration', data.residenceDuration.toString());
-    formData.append('residence_unit', data.residenceUnit);
-    formData.append('home_number', data.homeNo || '');
-    formData.append('candidate_type', data.candidate_type);
-
-    console.log('constituency staff:', constituency_staff.constituency_id, constituency_staff );
-    if (constituency_staff != null){
-        formData.append('constituency_id', constituency_staff.constituency_id);
-     }
-    
-    if (data.candidate_type === 'party') {
-      formData.append('party_id', data.party_id);
-    }
-
-    if (data.image && data.image.length > 0) {
-      formData.append('image', data.image[0]);
-    }
-
-    // Log FormData contents
-    for (let [key, value] of formData.entries()) {
-      console.log(key, value);
-    }
-
-    // Create candidate
-    const candidateRes = await axios.post('http://127.0.0.1:8000/api/candidate', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-
-    console.log('Candidate registration response:', candidateRes);
-
-    if (candidateRes.status !== 201) {
-      throw new Error('Candidate registration failed');
-    }
-
-    onClose();
-  } catch (err) {
-      console.error('Full error:', err);
-      console.error('Error response data:', err.response?.data);
-      setError('root', {
-        type: 'manual',
-        message: err.response?.data?.message || err.message || 'Registration failed. Please try again.'
-      });
-    }
-};
+  };
 
   if (!isOpen) return null;
 
@@ -255,13 +250,17 @@ const CreateCandidateForm = ({ isOpen, onClose }) => {
                   type="radio"
                   value={gender}
                   {...register('gender')}
-                  className="mr-2"
+                  className="mr-2 accent-purple-600 w-5 h-5"
                 />
                 {gender}
               </label>
             ))}
           </div>
         </div>
+          
+          {/* to take constituency_id from the staff */}
+        <input type="hidden" {...register('constituency_id')} />
+
 
         {/* Birth Date */}
         <div>

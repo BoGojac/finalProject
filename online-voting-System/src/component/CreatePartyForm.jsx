@@ -243,7 +243,7 @@ const CreatePartyForm = ({ isOpen, onClose }) => {
                   type="radio"
                   value={type}
                   {...register('participation_area')}
-                  className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300"
+                  className="text-purple-600 focus:ring-purple-500 border-gray-300 accent-purple-600 w-5 h-5"
                 />
                 <span className="ml-2 text-sm text-gray-700">
                   {type.charAt(0).toUpperCase() + type.slice(1)}

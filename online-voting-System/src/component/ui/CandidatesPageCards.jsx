@@ -75,7 +75,7 @@ const CandidatesPageCards = () => {
             onClick={() => handleCardClick(card.path)}
           >
             <div className="flex items-center gap-4 mb-3">
-              <h3 className="text-lg font-semibold">{card.title}</h3>
+              <h3 className="text-lg font-semibold text-left">{card.title}</h3>
               <div className="p-2 bg-gray-100 rounded-full">{card.icon}</div>
             </div>
             <div className="text-sm text-gray-600">

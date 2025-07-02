@@ -26,6 +26,10 @@ import ComplainForm from '../component/CandidateComplainForm';
 import PollingStationPageCards from '../component/ui/PollingStationPageCard';
 import VoterList from '../component/ListOfVoters';
 import AddRegion from '../component/AddRegion';
+import VoterPageCards from '../component/ui/VotersPageCards';
+import VoteCasting from '../component/VoteCasting';
+
+
 const RoutingPages = () => {
 	return (
 		<div>
@@ -103,7 +107,11 @@ const RoutingPages = () => {
 
 
 					{/* Voters Page Route */}
-					<Route path="/VotersPage" element={<Layout><VotersPage /></Layout>} />
+					<Route path="/VotersPage" element={<Layout><VotersPage /></Layout>}>
+					    <Route index element={<VoterPageCards/>}/>
+						<Route path="vote" element = {<VoteCasting/>}/>
+						<Route path="register-candidate" element = {<CandidateList/>}/>
+					</Route> 
 
 
 

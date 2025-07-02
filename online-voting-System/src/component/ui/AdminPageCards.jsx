@@ -3,9 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Users,
   FileText,
-  Database,
-  BarChart2,
-  Settings,
+  History,
 } from "lucide-react";
 
 const AdminPageCards = () => {
@@ -33,28 +31,16 @@ const AdminPageCards = () => {
       path: "/Admin/manage-user"
     },
     {
-      title: "System Logs",
-      description: "View detailed system activity logs",
-      icon: <FileText className="text-green-600" size={28} />,
+      title: "View Override History",
+      description: "View voting override history",
+      icon: <History className="text-green-600" size={28} />,
       path: "/Admin/view-override-history"
     },
     {
-      title: "Database Management",
-      description: "Monitor and optimize database performance",
-      icon: <Database className="text-purple-600" size={28} />,
+      title: "System Log",
+      description: "View detailed system activity logs",
+      icon: <FileText className="text-purple-600" size={28} />,
       path: "/Admin/database-management"
-    },
-    {
-      title: "Analytics Dashboard",
-      description: "View system usage statistics and metrics",
-      icon: <BarChart2 className="text-indigo-600" size={28} />,
-      path: "/Admin/analytics"
-    },
-    {
-      title: "System Configuration",
-      description: "Configure global system settings",
-      icon: <Settings className="text-red-600" size={28} />,
-      path: "/Admin/settings"
     },
   ];
 

@@ -87,19 +87,19 @@ const EditPartyForm = () => {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <label className="block">Party Name</label>
-          <input {...register('name')} className={`form-input w-full ${errors.name ? 'border-red-500' : ''}`} />
+          <input {...register('name')} className={`form-input h-10 w-full rounded-md border ${errors.name ? 'border-red-500' : 'border-gray-300'}`} />
           {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block">Abbreviation</label>
-            <input {...register('abbrivation')} className={`form-input w-full ${errors.abbrivation ? 'border-red-500' : ''}`} />
+            <input {...register('abbrivation')} className={`form-input h-10 w-full rounded-md border ${errors.abbrivation ? 'border-red-500' : 'border-gray-300'}`} />
             {errors.abbrivation && <p className="text-red-500 text-sm">{errors.abbrivation.message}</p>}
           </div>
           <div>
             <label className="block">Leader</label>
-            <input {...register('leader')} className={`form-input w-full ${errors.leader ? 'border-red-500' : ''}`} />
+            <input {...register('leader')} className={`form-input h-10 w-full rounded-md border ${errors.leader ? 'border-red-500' : 'border-gray-300'}`} />
             {errors.leader && <p className="text-red-500 text-sm">{errors.leader.message}</p>}
           </div>
         </div>
@@ -107,12 +107,12 @@ const EditPartyForm = () => {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block">Founding Year</label>
-            <input type="date" {...register('foundation_year')} className={`form-input w-full ${errors.foundation_year ? 'border-red-500' : ''}`} />
+            <input type="date" {...register('foundation_year')} className={`form-input h-10 w-full rounded-md border ${errors.foundation_year ? 'border-red-500' : 'border-gray-300'}`} />
             {errors.foundation_year && <p className="text-red-500 text-sm">{errors.foundation_year.message}</p>}
           </div>
           <div>
             <label className="block">Headquarters</label>
-            <input {...register('headquarters')} className={`form-input w-full ${errors.headquarters ? 'border-red-500' : ''}`} />
+            <input {...register('headquarters')} className={`form-input h-10 w-full rounded-md border ${errors.headquarters ? 'border-red-500' : 'border-gray-300'}`} />
             {errors.headquarters && <p className="text-red-500 text-sm">{errors.headquarters.message}</p>}
           </div>
         </div>
@@ -121,11 +121,11 @@ const EditPartyForm = () => {
           <label className="block">Participation Area</label>
           <div className="space-x-4">
             <label className="inline-flex items-center">
-              <input type="radio" value="national" {...register('participation_area')} className="form-radio" />
+              <input type="radio" value="national" {...register('participation_area')} className="accent-purple-600 w-5 h-5 form-radio"/>
               <span className="ml-2">National</span>
             </label>
             <label className="inline-flex items-center">
-              <input type="radio" value="regional" {...register('participation_area')} className="form-radio" />
+              <input type="radio" value="regional" {...register('participation_area')} className="form-radio accent-purple-600 w-5 h-5" />
               <span className="ml-2">Regional</span>
             </label>
           </div>
@@ -134,7 +134,7 @@ const EditPartyForm = () => {
         {participationArea === 'regional' && (
           <div>
             <label className="block">Region</label>
-            <select {...register('region_id')} className={`form-select w-full ${errors.region_id ? 'border-red-500' : ''}`}>
+            <select {...register('region_id')} className={`form-select w-full h-10 rounded-md border ${errors.region_id ? 'border-red-500' : 'border-gray-300'}`}>
               <option value="">Select Region</option>
               {regions.map(region => (
                 <option key={region.id} value={String(region.id)}>{region.name}</option>
@@ -146,7 +146,7 @@ const EditPartyForm = () => {
 
         <div>
           <label className="block">Party Logo</label>
-          <input type="file" {...register('logo')} className="form-input w-full" accept="image/*" />
+          <input type="file" {...register('logo')} className="form-input w-full rounded-md border h-10" accept="image/*" />
         </div>
 
         <div className="pt-4 flex justify-end space-x-3">
