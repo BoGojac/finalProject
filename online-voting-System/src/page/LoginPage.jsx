@@ -42,6 +42,7 @@ const LoginPage = () => {
 
       // Store token and user in Zustand
       login(user, access_token);
+      localStorage.setItem('token', access_token);
       const role = user.role.toLowerCase().replace(/\s+/g, '');
       // Redirect based on user role
       switch (role) {
@@ -149,7 +150,7 @@ const LoginPage = () => {
           
         default:
           alert('Unknown role: ' + user.role);
-      }
+      } 
       console.log("logged is user is ===========",user, access_token);
     } catch (error) {
       setError("root", { message: error.response?.data.message || 'Login failed. Please try again later.' });

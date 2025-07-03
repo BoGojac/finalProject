@@ -22,12 +22,17 @@ const useAuthStore = create((set) => ({
           candidate: candidate,
           voter: voter, }),
   logout: () =>
-    set({ user: null, 
-          token: null, 
-          isAuthenticated: false,
-          admin: null, 
-          board_manager: null, 
-          constituency_staff: null, }),
-}));
+  set({ user: null, 
+        token: null, 
+        isAuthenticated: false,
+        admin: null, 
+        board_manager: null, 
+        constituency_staff: null, 
+        polling_station_staff: null,
+        candidate: null,
+        voter: null,
+      }),
+})
+);
 
 export default useAuthStore;
