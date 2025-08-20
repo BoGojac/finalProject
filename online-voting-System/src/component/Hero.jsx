@@ -43,7 +43,8 @@ const Hero = () => {
                     <Swiper
                         modules={[Navigation, Pagination, Autoplay]}
                         spaceBetween={10}
-                        slidesPerView={1}
+                        slidesPerView={2}
+                        loop={images.length > 2}
                         navigation
                         pagination={{ clickable: true }}
                         autoplay={{ delay: 3000 }}

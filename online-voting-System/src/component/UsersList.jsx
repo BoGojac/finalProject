@@ -9,6 +9,7 @@ const UsersList = () => {
   const {
     users,
     fetchUsers,
+    pagination,
     isAddFormOpen,
     isEditFormOpen,
     openAddForm,
@@ -77,6 +78,24 @@ const UsersList = () => {
         onAdd={openAddForm}
         onToggleStatus={handleToggleStatus}
       />
+
+       {pagination && (
+        <div className="flex gap-2 mt-4 flex-wrap">
+          {Array.from({ length: pagination.last_page }, (_, i) => (
+            <button
+              key={i}
+              onClick={() => fetchUsers(i + 1)}
+              className={`px-3 py-1 rounded-md border ${
+                pagination.current_page === i + 1
+                  ? 'bg-purple-800 text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              {i + 1}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Create User Form */}
       <CreateUserForm

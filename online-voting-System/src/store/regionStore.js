@@ -4,6 +4,7 @@ import axios from 'axios';
 
 const useRegionStore = create((set) => ({
   regions: [],
+  pagination: null,
   loading: false,
   error: null,
   successMessage: '',
@@ -16,13 +17,21 @@ const useRegionStore = create((set) => ({
   openEditForm: (region) => set({ selectedRegion: region, isEditFormOpen: true }),
   closeEditForm: () => set({ selectedRegion: null, isEditFormOpen: false }),
 
-  fetchRegions: async () => {
+  fetchRegions: async (page = 1) => {
     set({ loading: true, error: null });
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/regions');
-      set({ regions: response.data.data });
+      const response = await axios.get(`http://127.0.0.1:8000/api/regions?page=${page}`);
+      const data = response.data.data
+      set({ regions:  data.data,
+            pagination: {
+            current_page: data.current_page,
+            last_page: data.last_page,
+            per_page: data.per_page,
+            total: data.total
+          }
+       });
     } catch (err) {
-      set({ error: err?.response?.data?.message || err.message });
+      set({ error: err?.response?.data?.message || err.message, pagination: null  });
     } finally {
       set({ loading: false });
     }

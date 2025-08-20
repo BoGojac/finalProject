@@ -42,7 +42,7 @@ const LoginPage = () => {
 
       // Store token and user in Zustand
       login(user, access_token);
-      localStorage.setItem('token', access_token);
+      // localStorage.setItem('token', access_token);
       const role = user.role.toLowerCase().replace(/\s+/g, '');
       // Redirect based on user role
       switch (role) {
@@ -153,8 +153,21 @@ const LoginPage = () => {
       } 
       console.log("logged is user is ===========",user, access_token);
     } catch (error) {
-      setError("root", { message: error.response?.data.message || 'Login failed. Please try again later.' });
+      const status = error.response?.status;
+      const message = error.response?.data?.message || 'Login failed. Please try again later.';
+
+      if (status === 403) {
+        // Custom deactivation message from backend
+        setError('root', { message });
+      } else if (status === 401) {
+        // Invalid credentials
+        setError('root', { message: 'Invalid email or password.' });
+      } else {
+        // Generic fallback
+        setError('root', { message });
+      }
     }
+
   };
 
   return (

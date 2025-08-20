@@ -14,15 +14,26 @@ const useRegionConstituencyStore = create((set) => ({
         axios.get('http://127.0.0.1:8000/api/constituency')
       ]);
 
+      // Log both responses to confirm structure
+      console.log("Region response:", regionRes.data);
+      console.log("Constituency response:", constRes.data);
+
+      const regionData = Array.isArray(regionRes.data?.data?.data)
+        ? regionRes.data.data.data
+        : []; // fallback to empty array if it's not an array
+      const constituencyData = Array.isArray(constRes.data?.data?.data)
+      ? constRes.data.data.data
+      : [];
+
       const grouped = {};
-      for (const con of constRes.data.data) {
+      for (const con of constituencyData) {
         const regionId = con.region_id;
         if (!grouped[regionId]) grouped[regionId] = [];
         grouped[regionId].push(con);
       }
 
       set({
-        regions: regionRes.data.data,
+        regions: regionData,
         constituenciesByRegion: grouped
       });
     } catch (err) {

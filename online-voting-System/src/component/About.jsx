@@ -51,6 +51,7 @@ const About = () => {
                         modules={[Pagination, Navigation, Autoplay]}
                         spaceBetween={15}
                         slidesPerView={1}
+                        loop={cards.length > 1}
                         pagination={{ 
                             clickable: true,
                             dynamicBullets: true
@@ -59,7 +60,6 @@ const About = () => {
                             delay: 3000,
                             disableOnInteraction: false,
                         }}
-                        loop={true}
                         className="about-swiper"
                     >
                         {cards.map((card, index) => (

@@ -3,6 +3,7 @@ import axios from 'axios';
 
 const usePollingStationStore = create((set, get) => ({
   pollingStations: [],
+  pagination: null,
   selectedPollingStation: null,
 
   isAddFormOpen: false,
@@ -13,12 +14,24 @@ const usePollingStationStore = create((set, get) => ({
     pollingStation: null
   },
 
-  fetchPollingStations: async () => {
+  fetchPollingStations: async (page = 1) => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/pollingstation');
-      set({ pollingStations: response.data.data });
+      const response = await axios.get(`http://127.0.0.1:8000/api/pollingstation?page=${page}`);
+      const result = response.data.data; // this is the array you want
+      set({
+        pollingStations: result,
+        pagination: {
+          current_page: response.data.current_page ?? 1,
+          last_page: response.data.last_page ?? 1,
+          per_page: response.data.per_page ?? 10,
+          total: response.data.total ?? result.length
+        }
+      });
     } catch (error) {
       console.error('Failed to fetch polling stations:', error);
+      set({ pollingStations: [],
+        pagination: null,
+       });
     }
   },
 

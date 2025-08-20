@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useEffect } from 'react';
+import { useEffect, useRef  } from 'react';
 import Modal from './ui/FormModal';
 import { useForm } from 'react-hook-form';
 import axios from 'axios';
@@ -14,7 +14,16 @@ const voterSchema = z.object({
   middleName: z.string().optional(),
   lastName: z.string().min(1, 'Last name is required'),
   gender: z.enum(['Male', 'Female']),
-  birthDate: z.string().min(1, 'Birth date is required'),
+  birthDate: z.string()
+    .min(1, 'Birth date is required')
+    .refine(val => {
+      const birth = new Date(val);
+      const today = new Date();
+      const ageLimit = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+      return birth <= ageLimit;
+    }, {
+      message: 'Voter must be at least 18 years old',
+    }),
   residenceDuration: z.number().min(0, 'Residence duration must be positive'),
   residenceUnit: z.enum(['months', 'years']),
   homeNo: z.string().optional(),
@@ -51,6 +60,8 @@ const RegisterVoterForm = ({ isOpen, onClose }) => {
   const { polling_station_staff } = useAuthStore();
   const { fetchPollingStations } = usePollingStationStore();
 
+  const createdUserIdRef = useRef(null);
+
   const {
     register,
     handleSubmit,
@@ -85,76 +96,88 @@ const RegisterVoterForm = ({ isOpen, onClose }) => {
 }, [polling_station_staff, setValue]);
 
     const onSubmit = async (data) => {
-      console.log("Submitted");
-      console.log('Form data before submission:', data);
+  console.log("Submitted");
+  console.log('Form data before submission:', data);
 
-      try {
-        // Step 1: Register the user
-        const userRes = await axios.post('http://127.0.0.1:8000/api/userregister', {
-          email: data.email,
-          phone_number: data.phoneNumber,
-          username: data.username,
-          password: data.password,
-          password_confirmation: data.password_confirmation,
-          role: 'Voter',
-          voting_date_id: data.voting_date_id,
-          status: 'active'
-        }, {
-            headers: {
-              'Accept': 'application/json',
-            }
-          });
+  try {
+    let userId = createdUserIdRef.current;
 
-        if (userRes.status !== 201 && userRes.status !== 200) {
-          throw new Error('User registration failed');
-        }
+    // Step 1: Register the user if not already created
+    if (!userId) {
+      const userRes = await axios.post('http://127.0.0.1:8000/api/userregister', {
+        email: data.email,
+        phone_number: data.phoneNumber,
+        username: data.username,
+        password: data.password,
+        password_confirmation: data.password_confirmation,
+        role: 'Voter',
+        voting_date_id: data.voting_date_id,
+        status: 'active'
+      }, {
+        headers: { 'Accept': 'application/json' }
+      });
 
-        const userId = userRes.data.user.id;
-
-        // Step 2: Prepare voter FormData
-        const formData = new FormData();
-        formData.append('user_id', userId);
-        formData.append('first_name', data.firstName);
-        formData.append('middle_name', data.middleName || '');
-        formData.append('last_name', data.lastName);
-        formData.append('gender', data.gender);
-        formData.append('birth_date', data.birthDate);
-        formData.append('disability', data.disability);
-        formData.append('disability_type', data.disabilityType || '');
-        formData.append('residence_duration', data.residenceDuration.toString());
-        formData.append('residence_unit', data.residenceUnit);
-        formData.append('home_number', data.homeNo || '');
-        formData.append('voting_date_id', data.voting_date_id); // optional, if needed in candidate too
-
-        // ✅ Add polling_station_id from logged-in Polling_station_staff
-        if (polling_station_staff?.polling_station_id) {
-          formData.append('polling_station_id', polling_station_staff.polling_station_id.toString());
-        } else {
-          throw new Error('Polling Station ID not found for the logged-in staff.');
-        }
-
-        // Step 3: Register voter
-        const voterRes = await axios.post('http://127.0.0.1:8000/api/voter', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            'Accept': 'application/json',
-          },
-        }, { timeout: 10000 });
-
-        if (voterRes.status !== 201) {
-          throw new Error('Voter registration failed');
-        }
-
-        onClose(); // close modal on success
-
-      } catch (err) {
-        console.error('Error response data:', err.response?.data);
-        setError('root', {
-          type: 'manual',
-          message: err.response?.data?.message || err.message || 'Registration failed.',
-        });
+      if (userRes.status !== 201 && userRes.status !== 200) {
+        throw new Error('User registration failed');
       }
-  };
+
+      userId = userRes.data.user.id;
+      createdUserIdRef.current = userId; // 🧠 store for retry
+    }
+
+    // Step 2: Prepare voter FormData
+    const formData = new FormData();
+    formData.append('user_id', userId);
+    formData.append('first_name', data.firstName);
+    formData.append('middle_name', data.middleName || '');
+    formData.append('last_name', data.lastName);
+    formData.append('gender', data.gender);
+    formData.append('birth_date', data.birthDate);
+    formData.append('disability', data.disability);
+    formData.append('disability_type', data.disabilityType || '');
+    formData.append('residence_duration', data.residenceDuration.toString());
+    formData.append('residence_unit', data.residenceUnit);
+    formData.append('home_number', data.homeNo || '');
+    formData.append('voting_date_id', data.voting_date_id);
+
+    // ✅ Add polling_station_id from logged-in Polling_station_staff
+    if (polling_station_staff?.polling_station_id) {
+      formData.append('polling_station_id', polling_station_staff.polling_station_id.toString());
+    } else {
+      throw new Error('Polling Station ID not found for the logged-in staff.');
+    }
+
+    // Step 3: Register voter
+    const voterRes = await axios.post('http://127.0.0.1:8000/api/voter', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'Accept': 'application/json',
+      },
+    });
+
+    if (voterRes.status !== 201) {
+      throw new Error('Voter registration failed');
+    }
+
+    // ✅ Clean up and close
+    createdUserIdRef.current = null;
+    onClose();
+
+  } catch (err) {
+    console.error('Error response data:', err.response?.data);
+
+    // Prevent second user creation on retry if username was already taken
+    if (err.response?.data?.errors?.username?.includes("has already been taken")) {
+      // assume user created; reuse on retry
+    }
+
+    setError('root', {
+      type: 'manual',
+      message: err.response?.data?.message || err.message || 'Registration failed.',
+    });
+  }
+};
+
 
   if (!isOpen) return null;
 
@@ -220,6 +243,7 @@ const RegisterVoterForm = ({ isOpen, onClose }) => {
           <label className="block text-sm font-medium text-gray-700 mb-1">Birth Date</label>
           <input
             type="date"
+            max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
             {...register('birthDate')}
             className={`w-full border rounded h-10 px-2 ${
               errors.birthDate ? 'border-red-500' : 'border-gray-300'

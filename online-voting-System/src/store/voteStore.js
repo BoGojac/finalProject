@@ -6,7 +6,7 @@ const useVoteStore = create((set) => ({
     
   candidates: [],
   selectedCandidateId: null,
-  hasVoted: localStorage.getItem('hasVoted') === 'true',
+  hasVoted: false,
   showWarning: false,
   confirmVote: false,
   showSuccess: false,
@@ -15,7 +15,6 @@ const useVoteStore = create((set) => ({
   setCandidates: (candidates) => set({ candidates }),
   selectCandidate: (id) => set({ selectedCandidateId: id }),
   setHasVoted: (voted) => {
-    localStorage.setItem('hasVoted', voted);
     set({ hasVoted: voted });
   },
   toggleWarning: (value) => set({ showWarning: value }),

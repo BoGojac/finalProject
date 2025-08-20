@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useEffect } from 'react';
+import { useEffect, useRef  } from 'react';
 import Modal from './ui/FormModal';
 import { useForm } from 'react-hook-form';
 import axios from 'axios';
@@ -15,7 +15,16 @@ const candidateSchema = z.object({
   middleName: z.string().optional(),
   lastName: z.string().min(1, 'Last name is required'),
   gender: z.enum(['Male', 'Female']),
-  birthDate: z.string().min(1, 'Birth date is required'),
+  birthDate: z.string()
+  .min(1, 'Birth date is required')
+  .refine(val => {
+    const birth = new Date(val);
+    const today = new Date();
+    const ageLimit = new Date(today.getFullYear() - 21, today.getMonth(), today.getDate());
+    return birth <= ageLimit;
+  }, {
+    message: 'Candidate must be at least 21 years old',
+  }),
   residenceDuration: z.number().min(0, 'Residence duration must be positive'),
   residenceUnit: z.enum(['months', 'years']),
   homeNo: z.string().optional(),
@@ -60,7 +69,9 @@ const CreateCandidateForm = ({ isOpen, onClose }) => {
   const { parties, fetchParties } = usePartyStore();
   const { constituency_staff } = useAuthStore();
   const { fetchConstituencies } = useConstituencyStore();
-
+   
+  const createdUserIdRef = useRef(null);
+  
   const {
     register,
     handleSubmit,
@@ -96,11 +107,14 @@ const CreateCandidateForm = ({ isOpen, onClose }) => {
 }, [constituency_staff, setValue]);
 
     const onSubmit = async (data) => {
-      console.log("Submitted");
-      console.log('Form data before submission:', data);
+    console.log("Submitted");
+    console.log('Form data before submission:', data);
 
-      try {
-        // Step 1: Register the user
+    try {
+      let userId = createdUserIdRef.current;
+
+      // Step 1: Register the user if not already created
+      if (!userId) {
         const userRes = await axios.post('http://127.0.0.1:8000/api/userregister', {
           email: data.email,
           phone_number: data.phoneNumber,
@@ -111,69 +125,76 @@ const CreateCandidateForm = ({ isOpen, onClose }) => {
           voting_date_id: data.voting_date_id,
           status: 'active'
         }, {
-            headers: {
-              'Accept': 'application/json',
-            }
-          });
+          headers: { 'Accept': 'application/json' }
+        });
 
         if (userRes.status !== 201 && userRes.status !== 200) {
           throw new Error('User registration failed');
         }
 
-        const userId = userRes.data.user.id;
-
-        // Step 2: Prepare candidate FormData
-        const formData = new FormData();
-        formData.append('user_id', userId);
-        formData.append('first_name', data.firstName);
-        formData.append('middle_name', data.middleName || '');
-        formData.append('last_name', data.lastName);
-        formData.append('gender', data.gender);
-        formData.append('birth_date', data.birthDate);
-        formData.append('disability', data.disability);
-        formData.append('disability_type', data.disabilityType || '');
-        formData.append('residence_duration', data.residenceDuration.toString());
-        formData.append('residence_unit', data.residenceUnit);
-        formData.append('home_number', data.homeNo || '');
-        formData.append('candidate_type', data.candidate_type);
-        formData.append('voting_date_id', data.voting_date_id); // optional, if needed in candidate too
-
-        // ✅ Add constituency_id from logged-in constituency_staff
-        if (constituency_staff?.constituency_id) {
-          formData.append('constituency_id', constituency_staff.constituency_id.toString());
-        } else {
-          throw new Error('Constituency ID not found for the logged-in staff.');
-        }
-
-        if (data.candidate_type === 'party') {
-          formData.append('party_id', data.party_id);
-        }
-
-        if (data.image && data.image.length > 0) {
-          formData.append('image', data.image[0]);
-        }
-
-        // Step 3: Register candidate
-        const candidateRes = await axios.post('http://127.0.0.1:8000/api/candidate', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            'Accept': 'application/json',
-          },
-        }, { timeout: 10000 });
-
-        if (candidateRes.status !== 201) {
-          throw new Error('Candidate registration failed');
-        }
-
-        onClose(); // close modal on success
-
-      } catch (err) {
-        console.error('Error response data:', err.response?.data);
-        setError('root', {
-          type: 'manual',
-          message: err.response?.data?.message || err.message || 'Registration failed.',
-        });
+        userId = userRes.data.user.id;
+        createdUserIdRef.current = userId; // 🧠 store it to skip re-registration on retry
       }
+
+      // Step 2: Prepare candidate FormData
+      const formData = new FormData();
+      formData.append('user_id', userId);
+      formData.append('first_name', data.firstName);
+      formData.append('middle_name', data.middleName || '');
+      formData.append('last_name', data.lastName);
+      formData.append('gender', data.gender);
+      formData.append('birth_date', data.birthDate);
+      formData.append('disability', data.disability);
+      formData.append('disability_type', data.disabilityType || '');
+      formData.append('residence_duration', data.residenceDuration.toString());
+      formData.append('residence_unit', data.residenceUnit);
+      formData.append('home_number', data.homeNo || '');
+      formData.append('candidate_type', data.candidate_type);
+      formData.append('voting_date_id', data.voting_date_id); // optional
+
+      if (constituency_staff?.constituency_id) {
+        formData.append('constituency_id', constituency_staff.constituency_id.toString());
+      } else {
+        throw new Error('Constituency ID not found for the logged-in staff.');
+      }
+
+      if (data.candidate_type === 'party') {
+        formData.append('party_id', data.party_id);
+      }
+
+      if (data.image && data.image.length > 0) {
+        formData.append('image', data.image[0]);
+      }
+
+      // Step 3: Register candidate
+      const candidateRes = await axios.post('http://127.0.0.1:8000/api/candidate', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Accept': 'application/json',
+        },
+      });
+
+      if (candidateRes.status !== 201) {
+        throw new Error('Candidate registration failed');
+      }
+
+      // ✅ Clean up and close
+      createdUserIdRef.current = null;
+      onClose();
+
+    } catch (err) {
+      console.error('Error response data:', err.response?.data);
+
+      // Keep user ID ref if user creation succeeded, so we don't try again
+      if (err.response?.data?.errors?.username?.includes("has already been taken")) {
+        // do nothing, user is already registered
+      }
+
+      setError('root', {
+        type: 'manual',
+        message: err.response?.data?.message || err.message || 'Registration failed.',
+      });
+    }
   };
 
   if (!isOpen) return null;
@@ -267,6 +288,7 @@ const CreateCandidateForm = ({ isOpen, onClose }) => {
           <label className="block text-sm font-medium text-gray-700 mb-1">Birth Date</label>
           <input
             type="date"
+            max={new Date(new Date().setFullYear(new Date().getFullYear() - 21)).toISOString().split('T')[0]}
             {...register('birthDate')}
             className={`w-full border rounded h-10 px-2 ${
               errors.birthDate ? 'border-red-500' : 'border-gray-300'

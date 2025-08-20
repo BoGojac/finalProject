@@ -26,6 +26,27 @@ const VoteCasting = () => {
 
   const navigate = useNavigate();
 
+     useEffect(() => {
+      const voterId = useAuthStore.getState().voter?.id;
+      const token = useAuthStore.getState().token;
+
+      if (!voterId || !token) return;
+
+      axios.get(`http://127.0.0.1:8000/api/voter/${voterId}/has-voted`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        },
+      })
+        .then((res) => {
+          setHasVoted(res.data.has_voted);
+        })
+        .catch((err) => {
+          console.error('Failed to fetch vote status:', err);
+        });
+    }, [setHasVoted]);
+
+
   useEffect(() => {
     if (!token) return; // ✅ guard in case token is missing
 
@@ -51,12 +72,57 @@ const VoteCasting = () => {
     toggleConfirmVote(true);
   };
 
-  const handleSubmitVote = () => {
-    localStorage.setItem('hasVoted', 'true');
-    setHasVoted('true');
-    toggleConfirmVote(false);
-    toggleSuccess(true);
+
+
+  const handleSubmitVote = async () => {
+    try {
+      const selectedCandidate = candidates.find(c => c.id === selectedCandidateId);
+      console.log("Selected candidate object:", selectedCandidate);
+
+      const voterId = useAuthStore.getState().voter?.id;
+      const votingDateId = useAuthStore.getState().user?.voting_date_id;
+
+      console.log('Sending vote payload:', {
+        voting_date_id: votingDateId,
+        candidate_id: selectedCandidate.id,
+        voter_id: voterId,
+      });
+
+      if (!votingDateId || !selectedCandidate.id || !voterId) {
+        console.error('Missing required vote data');
+        toggleWarning(true);
+        return;
+      }
+
+      const response = await axios.post(
+        'http://127.0.0.1:8000/api/vote-counts',
+        {
+          voting_date_id: votingDateId,
+          candidate_id: selectedCandidateId,
+          voter_id: voterId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/json',
+          },
+        }
+      );
+
+      console.log('Vote cast:', response.data);
+      setHasVoted('true');
+      toggleConfirmVote(false);
+      toggleSuccess(true);
+    } catch (error) {
+      console.error('Error casting vote:', error);
+      if (error.response?.data) {
+        console.error('Validation errors:', error.response.data.errors);
+      }
+      toggleConfirmVote(false);
+      toggleWarning(true);
+    }
   };
+
 
   const handleCloseSuccess = () => {
     toggleSuccess(false);

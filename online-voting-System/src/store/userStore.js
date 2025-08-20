@@ -8,15 +8,27 @@ const useUserStore = create((set) => ({
   isAddFormOpen: false,
   isEditFormOpen: false,
   selectedUser: null,
+  pagination: null,
 
-  fetchUsers: async () => {
+
+  fetchUsers: async (page = 1) => {
     try {
-      const res = await axios.get('http://127.0.0.1:8000/api/user');
-      set({ users: res.data.data });
+      const res = await axios.get(`http://127.0.0.1:8000/api/user?page=${page}`);
+      set({
+        users: res.data.data,
+        pagination: {
+          current_page: res.data.current_page,
+          last_page: res.data.last_page,
+          per_page: res.data.per_page,
+          total: res.data.total,
+        }
+      });
     } catch (e) {
       console.error(e);
+      set({ users: [], pagination: null });
     }
   },
+
 
   openAddForm: () => set({ isAddFormOpen: true }),
   closeAddForm: () => set({ isAddFormOpen: false }),

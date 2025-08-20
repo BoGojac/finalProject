@@ -9,13 +9,19 @@ import axios from 'axios';
 
 const partySchema = z.object({
   name: z.string().min(1, 'Party name is required'),
-  abbrivation: z.string().min(1, 'Abbreviation is required'), // 👈 match DB
+  abbrevation: z.string().min(1, 'Abbreviation is required'),
   leader: z.string().min(1, 'Leader is required'),
-  foundation_year: z.string().min(1, 'Founding year is required'), // 👈 match DB
+  foundation_year: z.string()
+    .refine(val => !isNaN(Date.parse(val)), 'Invalid date format')
+    .refine(val => {
+      const inputDate = new Date(val);
+      const today = new Date();
+      return inputDate.toISOString().split('T')[0] <= today.toISOString().split('T')[0];
+    }, 'Foundation year must not be in the future'),
   headquarters: z.string().min(1, 'Headquarters is required'),
   participation_area: z.enum(['national', 'regional']),
   region_id: z.string().optional(),
-  logo: z.any().optional()
+  logo: z.any().optional(),
 });
 
 const EditPartyForm = () => {
@@ -24,6 +30,7 @@ const EditPartyForm = () => {
     selectedParty,
     closeEditForm,
     fetchParties,
+    clearError,
   } = usePartyStore();
 
   const { regions, fetchRegions } = useRegionStore();
@@ -33,9 +40,10 @@ const EditPartyForm = () => {
     handleSubmit,
     watch,
     reset,
-    formState: { errors, isSubmitting }
+    setError,
+    formState: { errors, isSubmitting },
   } = useForm({
-    resolver: zodResolver(partySchema)
+    resolver: zodResolver(partySchema),
   });
 
   const participationArea = watch('participation_area');
@@ -56,29 +64,64 @@ const EditPartyForm = () => {
 
   const onSubmit = async (data) => {
     try {
-      const payload = new FormData();
-      Object.entries(data).forEach(([key, value]) => {
-        if (participationArea !== 'regional' && key === 'region_id') return;
-        if (key === 'logo' && value instanceof File) {
-          payload.append('image', value); // backend expects 'image'
-        } else if (value) {
-          payload.append(key, value);
-        }
-      });
+      clearError();
 
-      await axios.put(`http://127.0.0.1:8000/api/party/${selectedParty.id}`, payload, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const payload = new FormData();
+
+      // Always send all required text fields
+      payload.append('name', data.name);
+      payload.append('abbrevation', data.abbrevation);
+      payload.append('leader', data.leader);
+      payload.append('foundation_year', data.foundation_year);
+      payload.append('headquarters', data.headquarters);
+      payload.append('participation_area', data.participation_area);
+
+    
+        // ✅ FIXED VERSION (ONLY send region_id if it has a real value)
+        if (data.participation_area === 'regional' && data.region_id) {
+          payload.append('region_id', data.region_id);
+        }
+
+
+      // Add image file if selected
+      if (data.logo instanceof File) {
+        payload.append('image', data.logo);
+      }
+       for (const [key, value] of payload.entries()) {
+        console.log(`${key}:`, value);
+      }
+      payload.append('_method', 'PUT');  // add this to override HTTP method
+
+      await axios.post(
+        `http://127.0.0.1:8000/api/party/${selectedParty.id}`,
+        payload,
+        {
+          headers: { 
+            'Content-Type': 'multipart/form-data',
+            'Accept' : 'application-json',
+           },
+        }
+      );
 
       await fetchParties();
       closeEditForm();
       reset();
-    } catch (error) {
-      console.error('Failed to update party:', error.response?.data || error.message);
-    }
+    } catch (err) {
+        console.error('Update error:', err.response?.data);
+
+        const msg = err.response?.data?.message || 'Failed to update party';
+
+        if (err.response?.data?.errors) {
+          Object.entries(err.response.data.errors).forEach(([field, messages]) => {
+            setError(field, { type: 'manual', message: messages[0] });
+          });
+        } else {
+          setError('root', { type: 'manual', message: msg });
+        }
+      }
+
   };
+
 
   if (!isEditFormOpen || !selectedParty) return null;
 
@@ -94,8 +137,8 @@ const EditPartyForm = () => {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block">Abbreviation</label>
-            <input {...register('abbrivation')} className={`form-input h-10 w-full rounded-md border ${errors.abbrivation ? 'border-red-500' : 'border-gray-300'}`} />
-            {errors.abbrivation && <p className="text-red-500 text-sm">{errors.abbrivation.message}</p>}
+            <input {...register('abbrevation')} className={`form-input h-10 w-full rounded-md border ${errors.abbrevation ? 'border-red-500' : 'border-gray-300'}`} />
+            {errors.abbrevation && <p className="text-red-500 text-sm">{errors.abbrevation.message}</p>}
           </div>
           <div>
             <label className="block">Leader</label>
@@ -107,7 +150,12 @@ const EditPartyForm = () => {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block">Founding Year</label>
-            <input type="date" {...register('foundation_year')} className={`form-input h-10 w-full rounded-md border ${errors.foundation_year ? 'border-red-500' : 'border-gray-300'}`} />
+            <input
+              type="date"
+              {...register('foundation_year')}
+              className={`mt-1 block w-full rounded-md border ${errors.foundation_year ? 'border-red-500' : 'border-gray-300'} shadow-sm focus:border-purple-500 focus:ring-purple-500 h-10 px-3`}
+              max={new Date().toISOString().split('T')[0]}
+            />
             {errors.foundation_year && <p className="text-red-500 text-sm">{errors.foundation_year.message}</p>}
           </div>
           <div>
@@ -149,8 +197,14 @@ const EditPartyForm = () => {
           <input type="file" {...register('logo')} className="form-input w-full rounded-md border h-10" accept="image/*" />
         </div>
 
+        {errors.root && <p className="text-red-500 text-sm text-center">{errors.root.message}</p>}
+
         <div className="pt-4 flex justify-end space-x-3">
-          <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-purple-800 text-white rounded-md hover:bg-purple-600 disabled:opacity-50">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="px-4 py-2 bg-purple-800 text-white rounded-md hover:bg-purple-600 disabled:opacity-50"
+          >
             {isSubmitting ? 'Updating...' : 'Update Party'}
           </button>
         </div>

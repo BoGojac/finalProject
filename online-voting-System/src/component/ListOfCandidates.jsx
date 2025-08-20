@@ -8,6 +8,7 @@ import useCandidateStore from '../store/candidateStore';
 const CandidateList = () => {
   const {
     candidates,
+    pagination,
     fetchCandidates,
     isAddFormOpen,
     isEditFormOpen,
@@ -18,10 +19,12 @@ const CandidateList = () => {
     selectedCandidate,
     toggleStatus,
   } = useCandidateStore();
+ 
 
   useEffect(() => {
     fetchCandidates();
   }, [fetchCandidates]);
+  console.log("candidate:", candidates);
 
   const columns = [
     {
@@ -112,6 +115,26 @@ const CandidateList = () => {
             </>
           )}
       />
+
+      
+      {pagination && (
+        <div className="flex gap-2 mt-4">
+          {Array.from({ length: pagination.last_page }, (_, i) => (
+            <button
+              key={i}
+              onClick={() => fetchCandidates(i + 1)}
+              className={`px-3 py-1 rounded-md border ${
+                pagination.current_page === i + 1
+                  ? 'bg-purple-800 text-white'
+                  : 'bg-white text-gray-700'
+              }`}
+            >
+              {i + 1}
+            </button>
+          ))}
+        </div>
+      )}
+
 
 
     <CreateCandidateForm

@@ -30,7 +30,7 @@ const Sidebar = ({ sidebarOpen, isMobile, toggleSidebar }) => {
 		},
 		{
 			to: '/admin/manage-user',
-			label: 'Manage User',
+			label: 'User Management',
 			icon: <Users size={18} />,
 		},
 		{
@@ -161,7 +161,7 @@ const Sidebar = ({ sidebarOpen, isMobile, toggleSidebar }) => {
 			icon: <Vote size={18} />, 
 		},
 		{
-			to: '/voters/register-candidate',
+			to: '/voters/view-candidate',
 			label: 'View Candidates',
 			icon: <UserSearch size={18} />, 
 		},

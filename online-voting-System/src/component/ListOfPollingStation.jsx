@@ -9,6 +9,7 @@ import usePollingStationStore from '../store/pollingStationStore'; // ✅ Use co
 const PollingStationList = () => {
   const {
     pollingStations,
+    pagination,
     fetchPollingStations,
     isAddFormOpen,
     openAddForm,
@@ -74,6 +75,24 @@ const PollingStationList = () => {
         addButtonIcon={Plus}
         onAdd={openAddForm}
       />
+
+      {pagination && (
+        <div className="flex gap-2 mt-4">
+          {Array.from({ length: pagination.last_page }, (_, i) => (
+            <button
+              key={i}
+              onClick={() => fetchPollingStations(i + 1)}
+              className={`px-3 py-1 rounded-md border ${
+                pagination.current_page === i + 1
+                  ? 'bg-purple-800 text-white'
+                  : 'bg-white text-gray-700'
+              }`}
+            >
+              {i + 1}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Create Form */}
       <CreatePollingStationForm

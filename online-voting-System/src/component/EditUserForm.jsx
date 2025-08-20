@@ -14,7 +14,7 @@ const userSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   middleName: z.string().optional(),
   lastName: z.string().min(1, 'Last name is required'),
-  gender: z.enum(['male', 'female']),
+  gender: z.enum(['Male', 'Female']),
   email: z.string().email('Invalid email'),
   phoneNumber: z.string().min(10, 'Phone number is required'),
   username: z.string().min(1, 'Username is required'),
@@ -44,7 +44,7 @@ const EditUserForm = ({ isOpen, onClose, user, onSuccess }) => {
       firstName: user?.first_name || '',
       middleName: user?.middle_name || '',
       lastName: user?.last_name || '',
-      gender: user?.gender || 'male',
+      gender: user?.gender || 'Male',
       email: user?.email || '',
       phoneNumber: user?.phone_number || '',
       username: user?.username || '',
@@ -188,7 +188,7 @@ const EditUserForm = ({ isOpen, onClose, user, onSuccess }) => {
         <div className="flex flex-col">
           <label className="text-sm font-medium">Gender</label>
           <div className="flex gap-4 mt-2">
-            {['male', 'female'].map(gender => (
+            {['Male', 'Female'].map(gender => (
               <label key={gender}><input type="radio" value={gender} {...register('gender')} className="mr-1 accent-purple-600 w-5 h-5" /> {gender}</label>
             ))}
           </div>

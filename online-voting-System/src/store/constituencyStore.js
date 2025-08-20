@@ -4,6 +4,7 @@ import axios from 'axios';
 
 const useConstituencyStore = create((set, get) => ({ 
   constituencies: [],
+  pagination: null,
   selectedConstituency: null,
 
   deleteModal: {
@@ -12,29 +13,30 @@ const useConstituencyStore = create((set, get) => ({
     constituency: null
   },
 
-  fetchConstituencies: async () => {
-        try {
-            const [constituencyRes, regionRes] = await Promise.all([
-            axios.get('http://127.0.0.1:8000/api/constituency'),
-            axios.get('http://127.0.0.1:8000/api/regions')
-            ]);
- 
-            const regionsMap = {};
-            for (const region of regionRes.data.data) {
-            regionsMap[region.id] = region.name;
-            }
+  fetchConstituencies: async (page = 1) => {
+    try {
+      const res = await axios.get(`http://127.0.0.1:8000/api/constituency?page=${page}`);
+      const data = res.data.data;
 
-            const constituenciesWithRegionName = constituencyRes.data.data.map((c) => ({
-            ...c,
-            region_name: regionsMap[c.region_id] || 'Unknown Region'
-            }));
+      const constituenciesWithDetails = data.data.map((c) => ({
+        ...c,
+        region_name: c.region?.name || 'Unknown',
+        voting_date_title: c.region?.voting_date?.title || 'N/A',
+      }));
 
-            set({ constituencies: constituenciesWithRegionName });
-        } catch (error) {
-            console.error('Failed to fetch constituencies or regions', error);
-        }
-    },
-
+      set({
+        constituencies: constituenciesWithDetails,
+        pagination: {
+          current_page: data.current_page,
+          last_page: data.last_page,
+          per_page: data.per_page,
+          total: data.total,
+        },
+      });
+    } catch (error) {
+      console.error('Failed to fetch constituencies', error);
+    }
+  },
 
   openAddForm: () => set({ isAddFormOpen: true }),
   closeAddForm: () => set({ isAddFormOpen: false }),

@@ -20,13 +20,14 @@ const partySchema = z.object({
     .min(1, 'Leader is required')
     .max(100, 'Leader name must be less than 100 characters'),
   foundation_year: z.string()
-    .refine(val => !isNaN(new Date(val).getTime()), 'Invalid date format')
-    .refine(val => {
-      const inputDate = new Date(val);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      return inputDate < today;
-    }, 'Foundation year must be in the past'),
+  .refine(val => !isNaN(Date.parse(val)), 'Invalid date format')
+  .refine(val => {
+    const inputDate = new Date(val);
+    const today = new Date();
+    // Compare only Y-M-D (strip time)
+    return inputDate.toISOString().split('T')[0] <= today.toISOString().split('T')[0];
+  }, 'Foundation year must not be in the future'),
+
   voting_date_id: z.string().min(1, 'Voting date is required'),
   headquarters: z.string()
     .min(1, 'Headquarters is required')
@@ -99,7 +100,7 @@ const CreatePartyForm = ({ isOpen, onClose }) => {
     formData.append('name', data.name);
     formData.append('abbrevation', data.abbrevation);
     formData.append('leader', data.leader);
-    formData.append('foundation_year', data.foundation_year);
+    formData.append('foundation_year', new Date(data.foundation_year).toISOString().split('T')[0]);
     formData.append('headquarters', data.headquarters);
     formData.append('participation_area', data.participation_area);
     formData.append('voting_date_id', data.voting_date_id);
@@ -198,7 +199,7 @@ const CreatePartyForm = ({ isOpen, onClose }) => {
             )}
           </div>
         </div>
-
+ 
         <div className="grid grid-cols-2 gap-4">
           {/* Foundation Year */}
           <div>

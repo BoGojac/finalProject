@@ -1,8 +1,7 @@
 import { create } from 'zustand'
 import axios from 'axios'
 
-export const usePeriodStore = create((set, get) => ({
-  votingDates: [],
+const usePeriodStore = create((set, get) => ({
   periods: {
     voter: null,
     candidate: null,
@@ -13,18 +12,22 @@ export const usePeriodStore = create((set, get) => ({
   fetchAll: async () => {
     set({ isLoading: true, error: '' })
     try {
-      const [votingDatesRes, periodsRes] = await Promise.all([
-        axios.get('/api/voting-dates'),
-        axios.get('/api/registration-time-span')
-      ])
-
+      const votingDateId = get().selectedVotingDate;
+      if (!votingDateId) return;
+      
+      const response = await axios.get(`/api/registration-time-span?include_dates=1&voting_date_id=${votingDateId}`);
+      
+      // Map periods to voter/candidate
       const mapPeriod = (type) => {
-        const found = periodsRes.data.data.find(p => p.type === type)
-        return found || null
+        const found = response.data.data.find(p => p.type === type);
+        return found ? {
+          ...found,
+          tempStart: found.beginning_date,
+          tempEnd: found.ending_date
+        } : null;
       }
 
       set({
-        votingDates: votingDatesRes.data.data,
         periods: {
           voter: mapPeriod('voter'),
           candidate: mapPeriod('candidate'),
@@ -43,45 +46,49 @@ export const usePeriodStore = create((set, get) => ({
   savePeriod: async (type, payload) => {
     set({ isLoading: true, error: '' })
     try {
-      const existing = get().periods[type]
-      let response
+      const existing = get().periods[type];
+      let response;
+      
       if (existing?.id) {
-        response = await axios.put(`/api/registration-time-span/${existing.id}`, { type, ...payload })
+        response = await axios.put(`/api/registration-time-span/${existing.id}`, payload);
       } else {
-        response = await axios.post('/api/registration-time-span', { type, ...payload })
+        response = await axios.post('/api/registration-time-span', payload);
       }
+      
+      // Update the store with the saved period
       set((state) => ({
         periods: {
           ...state.periods,
-          [type]: response.data.data
+          [type]: {
+            ...response.data.data,
+            tempStart: response.data.data.beginning_date,
+            tempEnd: response.data.data.ending_date
+          }
         },
         isLoading: false
       }))
-      return true
+      
+      return true;
     } catch (err) {
-      set({ error: err.response?.data?.message || err.message || 'Failed to save period', isLoading: false })
-      return false
+      set({ 
+        error: err.response?.data?.message || err.message || 'Failed to save period', 
+        isLoading: false 
+      });
+      return false;
     }
   },
 
-  deletePeriod: async (type) => {
-    const existing = get().periods[type]
-    if (!existing?.id) return false
-    set({ isLoading: true, error: '' })
-    try {
-      await axios.delete(`/api/registration-time-span/${existing.id}`)
-      set((state) => ({
-        periods: {
-          ...state.periods,
-          [type]: null
-        },
-        isLoading: false
-      }))
-      return true
-    } catch (err) {
-      set({ error: err.response?.data?.message || err.message || 'Failed to delete period', isLoading: false })
-      return false
-    }
-  },
-}))
- 
+  setTempDates: (type, field, value) => {
+    set((state) => ({
+      periods: {
+        ...state.periods,
+        [type]: {
+          ...state.periods[type],
+          [field]: value
+        }
+      }
+    }));
+  }
+}));
+
+export default usePeriodStore;

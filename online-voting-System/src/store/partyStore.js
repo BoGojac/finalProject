@@ -3,6 +3,7 @@ import axios from 'axios';
 
 const usePartyStore = create((set, get) => ({
   parties: [],
+  pagination: null,
   loading: false,
   error: null,
   isAddFormOpen: false,
@@ -28,14 +29,20 @@ const usePartyStore = create((set, get) => ({
   }),
 
   // Party data operations
-  fetchParties: async () => {
+  fetchParties: async (page=1) => {
     try {
       set({ loading: true, error: null });
-      const response = await axios.get('http://127.0.0.1:8000/api/party');
+      const response = await axios.get(`http://127.0.0.1:8000/api/party?page=${page}`);
       set({ 
-        parties: response.data.data, 
-        loading: false 
+        parties: response.data.data.data, // actual list
+        pagination: {
+          current_page: response.data.data.current_page,
+          last_page: response.data.data.last_page,
+          total: response.data.data.total
+        },
+        loading: false
       });
+
     } catch (error) {
       console.error('Failed to fetch parties:', error);
       set({ 

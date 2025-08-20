@@ -13,7 +13,16 @@ const editVoterSchema = z.object({
   middle_name: z.string().optional(),
   last_name: z.string().min(1, 'Last name is required'),
   gender: z.enum(['Male', 'Female'], { errorMap: () => ({ message: 'Gender is required' }) }),
-  birth_date: z.string().min(1, 'Birth date is required'),
+  birth_date: z.string()
+    .min(1, 'Birth date is required')
+    .refine(val => {
+      const birth = new Date(val);
+      const today = new Date();
+      const ageLimit = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+      return birth <= ageLimit;
+    }, {
+      message: 'Voter must be at least 18 years old',
+    }),
   disability: z.enum(['None', 'Visual', 'Hearing', 'Physical', 'Intellectual', 'Other'], {
     errorMap: () => ({ message: 'Disability is required' }),
   }),
@@ -157,7 +166,7 @@ const EditVoterForm = ({ isOpen, onClose, onSuccess, voter }) => {
           {errors.first_name && <p className="text-red-600 text-sm">{errors.first_name.message}</p>}
         </div>
 
-        <div>
+        <div> 
           <label>Middle Name</label>
           <input type="text" {...register('middle_name')} className="w-full border border-gray-300 rounded h-10 px-2" />
         </div>
@@ -183,8 +192,14 @@ const EditVoterForm = ({ isOpen, onClose, onSuccess, voter }) => {
 
         <div>
           <label>Birth Date</label>
-          <input type="date" {...register('birth_date')} className="w-full border border-gray-300 rounded h-10 px-2" />
-          {errors.birth_date && <p className="text-red-600 text-sm">{errors.birth_date.message}</p>}
+          <input
+            type="date"
+            max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+            {...register('birth_date')}
+            className={`w-full border rounded h-10 px-2 ${
+              errors.birth_date ? 'border-red-500' : 'border-gray-300'
+            }`}
+          />          {errors.birth_date && <p className="text-red-600 text-sm">{errors.birth_date.message}</p>}
         </div>
 
         <div>

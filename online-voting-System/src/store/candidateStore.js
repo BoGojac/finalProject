@@ -3,18 +3,32 @@ import axios from 'axios';
 
 const useCandidateStore = create((set, get) => ({
   candidates: [],
+  pagination: null,
   selectedCandidate: null,
   isAddFormOpen: false,
   isEditFormOpen: false,
+  
+  fetchCandidates: async (page = 1) => {
+      try {
+        const res = await axios.get(`http://127.0.0.1:8000/api/candidate?page=${page}`);
+        const data = res.data;
 
-  fetchCandidates: async () => {
-    try {
-      const res = await axios.get('http://127.0.0.1:8000/api/candidate');
-      set({ candidates: res.data });
-    } catch (err) {
-      console.error('Error fetching candidates:', err);
-    }
-  },
+        set({
+          candidates: data.data, // main data array
+          pagination: {
+            current_page: data.current_page,
+            last_page: data.last_page,
+            per_page: data.per_page,
+            total: data.total
+          }
+        });
+      } catch (err) {
+        console.error('Error fetching candidates:', err);
+        set({ candidates: [], pagination: null });
+      }
+    },
+
+
 
   openAddForm: () => set({ isAddFormOpen: true }),
   closeAddForm: () => set({ isAddFormOpen: false }),

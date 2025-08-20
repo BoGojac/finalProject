@@ -9,6 +9,7 @@ import EditConstituencyForm from './EditConstituencyForm';
 const ConstituencyList = () => { 
   const {
     constituencies,
+    pagination,
     fetchConstituencies,
     openAddForm,
     closeAddForm,
@@ -27,9 +28,10 @@ const ConstituencyList = () => {
     fetchConstituencies();
   }, [fetchConstituencies]);
 
-  const columns = [
+ const columns = [
     { key: 'name', header: 'Constituency Name' },
     { key: 'region_name', header: 'Region' },
+    { key: 'voting_date_title', header: 'Voting Date' },
     {
       key: 'longitude',
       header: 'Longitude',
@@ -44,16 +46,17 @@ const ConstituencyList = () => {
       key: 'status',
       header: 'Status',
       render: (value) => (
-          <span
-            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-              value === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-            }`}
-          >
-            {value}
-          </span>
-        ),
+        <span
+          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+            value === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+          }`}
+        >
+          {value}
+        </span>
+      ),
     }
   ];
+
 
   return (
     <>
@@ -73,6 +76,26 @@ const ConstituencyList = () => {
         addButtonIcon={Plus}
         onAdd={openAddForm}
       />
+
+
+      {pagination && (
+        <div className="flex gap-2 mt-4">
+          {Array.from({ length: pagination.last_page }, (_, i) => (
+            <button
+              key={i}
+              onClick={() => fetchConstituencies(i + 1)}
+              className={`px-3 py-1 rounded-md border ${
+                pagination.current_page === i + 1
+                  ? 'bg-purple-800 text-white'
+                  : 'bg-white text-gray-700'
+              }`}
+            >
+              {i + 1}
+            </button>
+          ))}
+        </div>
+      )}
+
 
       {/* Add Form */}
       <CreateConstituencyForm

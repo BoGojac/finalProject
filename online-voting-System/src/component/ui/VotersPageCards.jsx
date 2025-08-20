@@ -41,7 +41,7 @@ const VoterPageCards = () => {
         </div>
       ),
       icon: <UserSearch className="text-purple-600" size={28} />,
-      path: '/VotersPage/register-candidate'
+      path: '/VotersPage/view-candidate'
     },
     {
       title: "View Voters",

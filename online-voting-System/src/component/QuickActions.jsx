@@ -43,7 +43,7 @@ const QuickActions = () => {
                     <div className="rounded-lg bg-card text-card-foreground shadow-sm p-4 sm:p-6 hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:-translate-y-1 group border-[#E5DEFF] border-2">
                         <div className="flex flex-col items-center text-center">
                             <ChartPie className="lucide lucide-chart-pie w-8 h-8 sm:w-12 sm:h-12 text-[#6B4AA0] mb-4 group-hover:scale-110 transition-transform duration-300"/>
-                            <h3 className="text-lg sm:text-xl font-semibold mb-2">Live Results</h3>
+                            <h3 className="text-lg sm:text-xl font-semibold mb-2">View Results</h3>
                             <p className="text-sm sm:text-base text-gray-600">Check election results and statistics.</p>
                         </div>
                     </div>

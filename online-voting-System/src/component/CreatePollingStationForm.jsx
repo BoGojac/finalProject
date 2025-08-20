@@ -101,10 +101,8 @@ const CreatePollingStationForm = ({ isOpen, onClose, onSuccess }) => {
             className="w-full border rounded h-10 px-2"
           >
             <option value="">-- Select a Region --</option>
-            {regions.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.name}
-              </option>
+            {Array.isArray(regions) && regions.map((r) => (
+              <option key={r.id} value={r.id}>{r.name}</option>
             ))}
           </select>
         </div>
