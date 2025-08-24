@@ -6,7 +6,7 @@ import axios from 'axios';
 import { useEffect } from 'react';
 import { z } from 'zod';
 import Modal from './ui/FormModal';
-
+ 
 // Zod schema
 const editVoterSchema = z.object({
   first_name: z.string().min(1, 'First name is required'),
@@ -190,16 +190,17 @@ const EditVoterForm = ({ isOpen, onClose, onSuccess, voter }) => {
           {errors.gender && <p className="text-red-600 text-sm">{errors.gender.message}</p>}
         </div>
 
-        <div>
-          <label>Birth Date</label>
+       <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Birth Date</label>
           <input
             type="date"
             max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
-            {...register('birth_date')}
+            {...register('birthDate')}
             className={`w-full border rounded h-10 px-2 ${
               errors.birth_date ? 'border-red-500' : 'border-gray-300'
             }`}
-          />          {errors.birth_date && <p className="text-red-600 text-sm">{errors.birth_date.message}</p>}
+          />
+          {errors.birth_date && <p className="text-red-500 text-sm">{errors.birth_date.message}</p>}
         </div>
 
         <div>

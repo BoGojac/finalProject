@@ -12,12 +12,13 @@ const partySchema = z.object({
   abbrevation: z.string().min(1, 'Abbreviation is required'),
   leader: z.string().min(1, 'Leader is required'),
   foundation_year: z.string()
-    .refine(val => !isNaN(Date.parse(val)), 'Invalid date format')
-    .refine(val => {
-      const inputDate = new Date(val);
-      const today = new Date();
-      return inputDate.toISOString().split('T')[0] <= today.toISOString().split('T')[0];
-    }, 'Foundation year must not be in the future'),
+  .min(1, 'Foundation year is required')
+  .refine(val => !isNaN(Date.parse(val)), 'Invalid date format')
+  .refine(val => {
+    const inputDate = new Date(val);
+    const today = new Date();
+    return inputDate <= today; // Cannot be in the future
+  }, 'Foundation year must not be in the future'),
   headquarters: z.string().min(1, 'Headquarters is required'),
   participation_area: z.enum(['national', 'regional']),
   region_id: z.string().optional(),
@@ -149,14 +150,18 @@ const EditPartyForm = () => {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block">Founding Year</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Foundation Year</label>
             <input
               type="date"
+              max={new Date().toISOString().split('T')[0]} // Cannot select future date
               {...register('foundation_year')}
-              className={`mt-1 block w-full rounded-md border ${errors.foundation_year ? 'border-red-500' : 'border-gray-300'} shadow-sm focus:border-purple-500 focus:ring-purple-500 h-10 px-3`}
-              max={new Date().toISOString().split('T')[0]}
+              className={`w-full border rounded h-10 px-2 ${
+                errors.foundation_year ? 'border-red-500' : 'border-gray-300'
+              }`}
             />
-            {errors.foundation_year && <p className="text-red-500 text-sm">{errors.foundation_year.message}</p>}
+            {errors.foundation_year && (
+              <p className="text-red-500 text-sm">{errors.foundation_year.message}</p>
+            )}
           </div>
           <div>
             <label className="block">Headquarters</label>

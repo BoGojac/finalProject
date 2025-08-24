@@ -8,16 +8,21 @@ const usePollingStationStore = create((set, get) => ({
 
   isAddFormOpen: false,
   isEditFormOpen: false,
-  deleteModal: {
+  deleteModal: { 
     isOpen: false,
     isLoading: false,
     pollingStation: null
   },
 
-  fetchPollingStations: async (page = 1) => {
+  fetchPollingStations: async (constituency_id = null, page = 1) => {
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/pollingstation?page=${page}`);
-      const result = response.data.data; // this is the array you want
+      let url = `http://127.0.0.1:8000/api/pollingstation?page=${page}`;
+      if (constituency_id) {
+        url = `http://127.0.0.1:8000/api/constituency/${constituency_id}/pollingstations?page=${page}`;
+      }
+
+      const response = await axios.get(url);
+      const result = response.data.data;
       set({
         pollingStations: result,
         pagination: {
@@ -29,11 +34,10 @@ const usePollingStationStore = create((set, get) => ({
       });
     } catch (error) {
       console.error('Failed to fetch polling stations:', error);
-      set({ pollingStations: [],
-        pagination: null,
-       });
+      set({ pollingStations: [], pagination: null });
     }
   },
+
 
   openAddForm: () => set({ isAddFormOpen: true }),
   closeAddForm: () => set({ isAddFormOpen: false }),

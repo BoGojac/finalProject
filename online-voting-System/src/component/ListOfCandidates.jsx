@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Plus, Edit2 } from 'lucide-react';
 import DataTable from '../component/ui/Table';
 import CreateCandidateForm from './RegisterCandidatedForm';
@@ -6,6 +7,7 @@ import EditCandidateForm from './EditCandidateForm';
 import useCandidateStore from '../store/candidateStore';
 
 const CandidateList = () => {
+  const location = useLocation(); 
   const {
     candidates,
     pagination,
@@ -77,6 +79,9 @@ const CandidateList = () => {
 
   ];
 
+  // Hide Add button if route is "/BoardManagers/view-candidates"
+  const showAddButton = location.pathname !== '/BoardManagers/view-candidates';
+
   return (
     <div className="p-4">
       <DataTable
@@ -87,9 +92,9 @@ const CandidateList = () => {
             const item = candidates.find((c) => c.id === id);
             openEditForm(item);
           }}
-          addButtonText="Register New Candidate"
-          addButtonIcon={Plus}
-          onAdd={openAddForm}
+         addButtonText={showAddButton ? "Register New Candidate" : undefined}
+         addButtonIcon={showAddButton ? Plus : undefined}
+         onAdd={showAddButton ? openAddForm : undefined}
           onToggleStatus={(id, status) => toggleStatus(id, status)}
           renderActions={(item) => (
             <>

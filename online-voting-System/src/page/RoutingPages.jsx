@@ -69,8 +69,8 @@ const RoutingPages = () => {
             <Route path="set-registration-timespan" element={<SetRegistrationTimespan />} />
             <Route path="set-voting-date" element={<SetVotingDate />} />
             <Route path="override-voting" element={<OverrideVoting />} />
-			<Route path="view-voters" element={<VoterList />} />
-			<Route path="view-candidates" element={<CandidateList />} />			
+			      <Route path="view-voters" element={<VoterList />} />
+			      <Route path="view-candidates" element={<CandidateList />} />			
             <Route path="view-override-history" element={<OverrideHistory />} />
             <Route path="profile" element={<UserProfile />} />
           </Route>

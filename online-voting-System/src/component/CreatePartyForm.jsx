@@ -20,14 +20,13 @@ const partySchema = z.object({
     .min(1, 'Leader is required')
     .max(100, 'Leader name must be less than 100 characters'),
   foundation_year: z.string()
+  .min(1, 'Foundation year is required')
   .refine(val => !isNaN(Date.parse(val)), 'Invalid date format')
   .refine(val => {
     const inputDate = new Date(val);
     const today = new Date();
-    // Compare only Y-M-D (strip time)
-    return inputDate.toISOString().split('T')[0] <= today.toISOString().split('T')[0];
+    return inputDate <= today; // Cannot be in the future
   }, 'Foundation year must not be in the future'),
-
   voting_date_id: z.string().min(1, 'Voting date is required'),
   headquarters: z.string()
     .min(1, 'Headquarters is required')
@@ -203,17 +202,17 @@ const CreatePartyForm = ({ isOpen, onClose }) => {
         <div className="grid grid-cols-2 gap-4">
           {/* Foundation Year */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">Foundation Year*</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Foundation Year</label>
             <input
               type="date"
+              max={new Date().toISOString().split('T')[0]} // Cannot select future date
               {...register('foundation_year')}
-              className={`mt-1 block w-full rounded-md border ${
+              className={`w-full border rounded h-10 px-2 ${
                 errors.foundation_year ? 'border-red-500' : 'border-gray-300'
-              } shadow-sm focus:border-purple-500 focus:ring-purple-500 h-10 px-3`}
-              max={new Date().toISOString().split('T')[0]}
+              }`}
             />
             {errors.foundation_year && (
-              <p className="mt-1 text-sm text-red-600">{errors.foundation_year.message}</p>
+              <p className="text-red-500 text-sm">{errors.foundation_year.message}</p>
             )}
           </div>
 

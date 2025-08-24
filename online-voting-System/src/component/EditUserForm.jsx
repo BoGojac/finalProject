@@ -85,104 +85,51 @@ const EditUserForm = ({ isOpen, onClose, user, onSuccess }) => {
   }, [watchRole, fetchConstituencies]);
 
   useEffect(() => {
-    if (watchRole === 'Polling Station Staff' && watchConstituency) {
-      fetchPollingStations(watchConstituency);
-    }
-  }, [watchRole, watchConstituency, fetchPollingStations]);
+  if (watchRole === 'Polling Station Staff' && watchConstituency) {
+    fetchPollingStations(watchConstituency);
+  }
+}, [watchRole, watchConstituency, fetchPollingStations]);
+
 
   const onSubmit = async (data) => {
-      if (['Constituency Staff', 'Polling Station Staff'].includes(data.role) && !data.region_id) {
-        setError('region_id', { type: 'manual', message: 'Region is required for this role' });
-        return;
+    try {
+      const payload = {
+        email: data.email,
+        phone_number: data.phoneNumber,
+        username: data.username,
+        role: data.role,
+        first_name: data.firstName,
+        middle_name: data.middleName,
+        last_name: data.lastName,
+        gender: data.gender,
+      };
+
+      if (data.role === 'Constituency Staff') {
+        payload.constituency_id = data.constituency_id;
       }
-      if (data.role === 'Polling Station Staff' && !data.constituency_id) {
-        setError('constituency_id', { type: 'manual', message: 'Constituency is required' });
-        return;
+      if (data.role === 'Polling Station Staff') {
+        payload.polling_station_id = data.polling_station_id;
       }
-      if (data.role === 'Polling Station Staff' && !data.polling_station_id) {
-        setError('polling_station_id', { type: 'manual', message: 'Polling station is required' });
-        return;
+
+      const response = await axios.put(
+        `http://127.0.0.1:8000/api/user/${user.id}`,
+        payload
+      );
+
+      if (response?.data?.message) {
+        setSuccessMessage(response.data.message);
       }
-      console.log(user)
 
-      try {
-        const olddata = await axios.get(`http://127.0.0.1:8000/api/user/${user.id}`);
-        console.log(olddata);
-        const useroldrole = olddata.data.user.role;
-        console.log(useroldrole);
-        await axios.put(`http://127.0.0.1:8000/api/user/${user.id}`, {
-          email: data.email,
-          phone_number: data.phoneNumber,
-          username: data.username,
-          role: data.role,
-        });
-        // console.log (newdata)
+      if (onSuccess) onSuccess();
+      onClose();
+    } catch (err) {
+      setError('root', {
+        type: 'manual',
+        message: err.response?.data?.message || 'Failed to update user',
+      });
+    }
+  };
 
-        // Role-specific
-        let endpoint = '';
-        let endpoint1 = '';
-        let endpoint2 = '';
-        const profileData = {
-          first_name: data.firstName,
-          middle_name: data.middleName,
-          last_name: data.lastName,
-          gender: data.gender,
-        };
-         switch (useroldrole) {
-          case 'Admin':
-            endpoint2 = `http://127.0.0.1:8000/api/admin/`;
-            endpoint1 = `http://127.0.0.1:8000/api/user/admin/${user.id}`
-            break;
-          case 'Board Manager':
-            endpoint2 = `http://127.0.0.1:8000/api/boardmanagers/`;
-            endpoint1 = `http://127.0.0.1:8000/api/user/boardmanagers/${user.id}`
-            break;
-          case 'Constituency Staff':
-            endpoint2 = `http://127.0.0.1:8000/api/constituencystaff/`;
-            endpoint1 = `http://127.0.0.1:8000/api/user/constituencystaff/${user.id}`
-            break;
-          case 'Polling Station Staff':
-            endpoint2 = `http://127.0.0.1:8000/api/pollingstationstaff/`; 
-            endpoint1 = `http://127.0.0.1:8000/api/user/pollingstationstaff/${user.id}`
-            break;
-        }
-         const role_data = await axios.get(endpoint1);
-         const role_id = role_data.data.data.id;
-             await axios.delete(`${endpoint2}${role_id}`);
-        
-        switch (data.role) {
-          case 'Admin':
-            endpoint = `http://127.0.0.1:8000/api/admin`;
-            break;
-          case 'Board Manager':
-            endpoint = `http://127.0.0.1:8000/api/boardmanagers`;
-            break;
-          case 'Constituency Staff':
-            endpoint = `http://127.0.0.1:8000/api/constituencystaff`;
-            profileData.constituency_id = data.constituency_id;
-            break;
-          case 'Polling Station Staff':
-            endpoint = `http://127.0.0.1:8000/api/pollingstationstaff`;
-            profileData.polling_station_id = data.polling_station_id;
-            break;
-        }
-
-        const response = await axios.post(endpoint, profileData);
-
-        // ✅ Use the message here
-        if (response?.data?.message) {
-          setSuccessMessage(response.data.message);
-        }
-
-        if (onSuccess) onSuccess();
-        onClose();
-      } catch (err) {
-        setError('root', {
-          type: 'manual',
-          message: err.response?.data?.message || 'Failed to update user',
-        });
-      }
-    };
 
   if (!isOpen) return null;
 
