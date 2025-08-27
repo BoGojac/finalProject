@@ -49,7 +49,7 @@ const EditPollingStationForm = ({ isOpen, onClose, onSuccess, pollingStation }) 
 
   useEffect(() => {
   fetchRegionsAndConstituencies();
-}, []);
+}, [fetchRegionsAndConstituencies]);
 
 
   useEffect(() => {
