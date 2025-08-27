@@ -190,7 +190,7 @@ const Sidebar = ({ sidebarOpen, isMobile, toggleSidebar }) => {
 			icon: <List size={18} />,
 		},
 		{
-			to: '/Candidates/view-voters',
+			to: '/Candidates/view-voter',
 			label: 'View Voters',
 			icon: <List size={18} />,
 		},

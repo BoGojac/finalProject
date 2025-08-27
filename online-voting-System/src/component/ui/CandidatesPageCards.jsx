@@ -30,7 +30,7 @@ const CandidatesPageCards = () => {
         </div>
       ),
       icon: <List className="text-blue-600" size={28} />,
-      path: '/candidates/view-candidates',
+      path: '/Candidates/view-candidates',
 
     },
     {
@@ -44,7 +44,7 @@ const CandidatesPageCards = () => {
         </div>
       ),
       icon: <List className="text-green-600" size={28} />,
-      path: '/candidates/view-voters',
+      path: '/Candidates/view-voter',
     },
     {
       title: "Complain Submission",

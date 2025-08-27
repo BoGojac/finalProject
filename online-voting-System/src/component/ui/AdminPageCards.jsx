@@ -113,7 +113,7 @@ const AdminPageCards = () => {
       path: "/Admin/view-override-history"
     },
     {
-      title: "System Log",
+      title: "Activity Log",
       description: "View detailed system activity logs",
       icon: <FileText className="text-purple-600" size={28} />,
       path: "/Admin/database-management"

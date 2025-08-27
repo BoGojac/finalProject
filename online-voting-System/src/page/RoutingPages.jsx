@@ -87,6 +87,8 @@ const RoutingPages = () => {
         <Route element={<ProtectedRoute allowedRoles={['candidate']} />}>
           <Route path="/Candidates" element={<Layout><CandidatesPage /></Layout>}>
             <Route index element={<CandidatesPageCards />} />
+            <Route path="view-candidates" element={<ServiceUnavailable />} />
+            <Route path="view-voter" element={<ServiceUnavailable />} />
             <Route path="complain" element={<ComplainForm />} />
             <Route path="profile" element={<UserProfile />} />
             <Route path="result" element={<ServiceUnavailable />} />
