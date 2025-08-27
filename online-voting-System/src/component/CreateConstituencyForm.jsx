@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Modal from './ui/FormModal'; 
 import useRegionStore from '../store/regionStore';
 import useVotingDateStore from '../store/votingDateStore';
+import useAuthStore from '../store/authStore';
 
 const constituencySchema = z.object({
   name: z.string().min(1, 'Constituency name is required'),
@@ -40,6 +41,7 @@ const CreateConstituencyForm = ({ isOpen, onClose, onSuccess }) => {
 }, [fetchVotingDates]);
 
   const onSubmit = async (data) => {
+    const { token } = useAuthStore.getState();
     const formData = new FormData();
     formData.append('name', data.name);
     formData.append('region_id', data.region_id);
@@ -50,7 +52,8 @@ const CreateConstituencyForm = ({ isOpen, onClose, onSuccess }) => {
       const response = await axios.post('http://127.0.0.1:8000/api/constituency', formData, {
         headers: {
           Accept: 'application/json',
-          'Content-Type': 'multipart/form-data'
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`
         }
       });
 

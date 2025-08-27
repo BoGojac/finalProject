@@ -1,6 +1,7 @@
 // src/store/regionStore.js
 import { create } from 'zustand';
 import axios from 'axios'; 
+import useAuthStore from './authStore';
 
 const useRegionStore = create((set) => ({
   regions: [],
@@ -18,9 +19,12 @@ const useRegionStore = create((set) => ({
   closeEditForm: () => set({ selectedRegion: null, isEditFormOpen: false }),
 
   fetchRegions: async (page = 1) => {
+     const { token } = useAuthStore.getState();
     set({ loading: true, error: null });
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/regions?page=${page}`);
+      const response = await axios.get(`http://127.0.0.1:8000/api/regions?page=${page}`, {
+        headers: { Authorization: `Bearer ${token}` } // include token
+      });
       const data = response.data.data
       set({ regions:  data.data,
             pagination: {
@@ -38,7 +42,7 @@ const useRegionStore = create((set) => ({
   },
 
 
-  // ❌ Delete region
+  // Delete region
 
     deleteModal: {
       isOpen: false,
@@ -67,9 +71,12 @@ const useRegionStore = create((set) => ({
     },
 
   deleteRegion: async (id) => {
+     const { token } = useAuthStore.getState();
     set({ loading: true, error: null, successMessage: '' });
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/regions/${id}`);
+      await axios.delete(`http://127.0.0.1:8000/api/regions/${id}`, {
+        headers: { Authorization: `Bearer ${token}` } // include token
+      });
       set((state) => ({
         regions: state.regions.filter((region) => region.id !== id),
         successMessage: 'Region deleted successfully',

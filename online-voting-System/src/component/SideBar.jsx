@@ -138,7 +138,7 @@ const Sidebar = ({ sidebarOpen, isMobile, toggleSidebar }) => {
 			icon: <UserPlus size={18} />, 
 		},
 		{
-			to: '/PollingStation/view-candidates',
+			to: '/PollingStation/view-candidate',
 			label: 'View Candidates',
 			icon: <List size={18} />, 
 		},
@@ -161,18 +161,18 @@ const Sidebar = ({ sidebarOpen, isMobile, toggleSidebar }) => {
 			icon: <Vote size={18} />, 
 		},
 		{
-			to: '/voters/view-candidate',
+			to: '/VotersPage/view-candidate',
 			label: 'View Candidates',
 			icon: <UserSearch size={18} />, 
 		},
 		
 		{
-			to: '/voters/view-voters',
+			to: '/VotersPage/view-voters',
 			label: 'View Voters',
 			icon: <List size={18} />, 
 		},
 		{
-			to: '/voters/result',
+			to: '/VotersPage/result',
 			label: 'View Result',
 			icon: <BarChart2 size={18} />, 
 		},
@@ -180,7 +180,7 @@ const Sidebar = ({ sidebarOpen, isMobile, toggleSidebar }) => {
 
 	const candidatesLinks = [
 		{
-			to: '/candidates',
+			to: '/Candidates',
 			label: 'Dashboard',
 			icon: <LayoutDashboard size={18} />,
 		},

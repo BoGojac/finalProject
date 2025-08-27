@@ -23,7 +23,7 @@ const PollingStationPageCards = () => {
         </div>
       ),
       icon: <UserPlus className="text-blue-600" size={28} />,
-      path: "/pollingstation/register-voter"
+      path: "/PollingStation/register-voter"
     },
     {
       title: "View Candidates",
@@ -36,7 +36,7 @@ const PollingStationPageCards = () => {
         </div>
       ),
       icon: <List className="text-green-600" size={28} />,
-      path: "/pollingstation/view-candidates"
+      path: "/PollingStation/view-candidate"
     },
     {
       title: "View Results",

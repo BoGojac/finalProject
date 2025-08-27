@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 
+
 const periodSchema = z.object({
   voting_date_id: z.string().min(1, 'Voting date is required'),
   beginning_date: z.string().min(1, 'Beginning date is required'),

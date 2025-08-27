@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import axios from 'axios';
 import PropTypes from 'prop-types';
+import useAuthStore from '../store/authStore';
 
 
 
@@ -66,6 +67,7 @@ const EditPollingStationForm = ({ isOpen, onClose, onSuccess, pollingStation }) 
 
 
   const onSubmit = async (data) => {
+    const { token } = useAuthStore.getState();
     try {
       await axios.put(`http://127.0.0.1:8000/api/pollingstation/${pollingStation.id}`, {
         ...data,
@@ -74,7 +76,8 @@ const EditPollingStationForm = ({ isOpen, onClose, onSuccess, pollingStation }) 
       }, {
         headers: {
           Accept: 'application/json',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
         }
       });
 

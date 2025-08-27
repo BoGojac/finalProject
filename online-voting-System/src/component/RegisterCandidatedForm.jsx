@@ -10,6 +10,7 @@ import usePartyStore from '../store/partyStore';
 import useAuthStore from '../store/authStore';
 import useConstituencyStore from '../store/constituencyStore';
 
+
 const candidateSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   middleName: z.string().optional(),
@@ -107,8 +108,9 @@ const CreateCandidateForm = ({ isOpen, onClose }) => {
 }, [constituency_staff, setValue]);
 
     const onSubmit = async (data) => {
-    console.log("Submitted");
-    console.log('Form data before submission:', data);
+      const { token } = useAuthStore.getState();
+    // console.log("Submitted");
+    // console.log('Form data before submission:', data);
 
     try {
       let userId = createdUserIdRef.current;
@@ -125,7 +127,9 @@ const CreateCandidateForm = ({ isOpen, onClose }) => {
           voting_date_id: data.voting_date_id,
           status: 'active'
         }, {
-          headers: { 'Accept': 'application/json' }
+          headers: { 
+            'Accept': 'application/json',
+            Authorization: `Bearer ${token}` }
         });
 
         if (userRes.status !== 201 && userRes.status !== 200) {
@@ -171,6 +175,7 @@ const CreateCandidateForm = ({ isOpen, onClose }) => {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Accept': 'application/json',
+          Authorization: `Bearer ${token}`
         },
       });
 

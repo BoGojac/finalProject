@@ -9,6 +9,7 @@ import useRegionStore from '../store/regionStore';
 import useConstituencyStore from '../store/constituencyStore';
 import usePollingStationStore from '../store/pollingStationStore';
 import useVotingDateStore from '../store/votingDateStore';
+import useAuthStore from '../store/authStore';
 
 const userSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -74,6 +75,7 @@ useEffect(() => {
 
 
   const onSubmit = async (data) => {
+     const { token } = useAuthStore.getState();
     try {
       const resUser = await axios.post('http://127.0.0.1:8000/api/userregister', {
         email: data.email,
@@ -84,6 +86,8 @@ useEffect(() => {
         role: data.role,
         voting_date_id: data.voting_date_id,
         status: 'active',
+      }, {
+        headers: { Authorization: `Bearer ${token}` } // include token
       });
 
       if (resUser.status !== 201) {
@@ -103,17 +107,26 @@ useEffect(() => {
       };
 
       switch (data.role) {
+        
         case 'Admin':
-          await axios.post('http://127.0.0.1:8000/api/admin', payload);
+          await axios.post('http://127.0.0.1:8000/api/admin', payload, {
+        headers: { Authorization: `Bearer ${token}` } // include token
+      });
           break;
         case 'Board Manager':
-          await axios.post('http://127.0.0.1:8000/api/boardmanagers', payload);
+          await axios.post('http://127.0.0.1:8000/api/boardmanagers', payload, {
+        headers: { Authorization: `Bearer ${token}` } // include token
+      });
           break;
         case 'Constituency Staff':
-          await axios.post('http://127.0.0.1:8000/api/constituencystaff', payload);
+          await axios.post('http://127.0.0.1:8000/api/constituencystaff', payload, {
+        headers: { Authorization: `Bearer ${token}` } // include token
+      });
           break;
         case 'Polling Station Staff':
-          await axios.post('http://127.0.0.1:8000/api/pollingstationstaff', payload);
+          await axios.post('http://127.0.0.1:8000/api/pollingstationstaff', payload, {
+        headers: { Authorization: `Bearer ${token}` } // include token
+      });
           break;
       }
 

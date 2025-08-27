@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import axios from 'axios';
+import useAuthStore from './authStore';
 
 const usePartyStore = create((set, get) => ({
   parties: [],
@@ -30,9 +31,12 @@ const usePartyStore = create((set, get) => ({
 
   // Party data operations
   fetchParties: async (page=1) => {
+     const { token } = useAuthStore.getState();
     try {
       set({ loading: true, error: null });
-      const response = await axios.get(`http://127.0.0.1:8000/api/party?page=${page}`);
+      const response = await axios.get(`http://127.0.0.1:8000/api/party?page=${page}`, {
+        headers: { Authorization: `Bearer ${token}` } // include token
+      });
       set({ 
         parties: response.data.data.data, // actual list
         pagination: {
@@ -69,6 +73,7 @@ const usePartyStore = create((set, get) => ({
   }),
 
   confirmDeleteParty: async () => {
+     const { token } = useAuthStore.getState();
     const { deleteModal } = get();
     const id = deleteModal.party?.id;
     if (!id) return;
@@ -80,7 +85,9 @@ const usePartyStore = create((set, get) => ({
           isLoading: true 
         } 
       });
-      await axios.delete(`http://127.0.0.1:8000/api/party/${id}`);
+      await axios.delete(`http://127.0.0.1:8000/api/party/${id}`, {
+        headers: { Authorization: `Bearer ${token}` } // include token
+      });
       await get().fetchParties();
       set({ 
         deleteModal: { 
@@ -103,11 +110,14 @@ const usePartyStore = create((set, get) => ({
 
   // Status toggle
   toggleStatus: async (id, currentStatus) => {
+     const { token } = useAuthStore.getState();
     try {
       const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
       await axios.patch(
         `http://127.0.0.1:8000/api/party/status/${id}`, 
-        { status: newStatus }
+        { status: newStatus, }, {
+        headers: { Authorization: `Bearer ${token}` } // include token
+      }
       );
       await get().fetchParties();
     } catch (error) {

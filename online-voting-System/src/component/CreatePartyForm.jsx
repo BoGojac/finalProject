@@ -8,6 +8,7 @@ import Modal from './ui/FormModal';
 import useRegionStore from '../store/regionStore';
 import useVotingDateStore from '../store/votingDateStore';
 import usePartyStore from '../store/partyStore';
+import useAuthStore from '../store/authStore';
 
 const partySchema = z.object({
   name: z.string()
@@ -95,7 +96,7 @@ const CreatePartyForm = ({ isOpen, onClose }) => {
 
   const onSubmit = async (data) => {
     const formData = new FormData();
-    
+    const { token } = useAuthStore.getState();
     formData.append('name', data.name);
     formData.append('abbrevation', data.abbrevation);
     formData.append('leader', data.leader);
@@ -119,7 +120,8 @@ const CreatePartyForm = ({ isOpen, onClose }) => {
       await axios.post('http://127.0.0.1:8000/api/party', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          Authorization: `Bearer ${token}`
         }
       });
 

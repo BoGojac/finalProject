@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import { z } from 'zod';
 import Modal from './ui/FormModal';
 import usePartyStore from '../store/partyStore';
+import useAuthStore from '../store/authStore';
 
 // Zod schema
 const editCandidateSchema = z.object({
@@ -111,6 +112,7 @@ const EditCandidateForm = ({ isOpen, onClose, onSuccess, candidate }) => {
   }, [candidate, reset]);
 
   const onSubmit = async (data) => {
+    const { token } = useAuthStore.getState();
     if (!candidate) return;
 
     const formData = new FormData();
@@ -137,7 +139,8 @@ const EditCandidateForm = ({ isOpen, onClose, onSuccess, candidate }) => {
 
     try {
       await axios.post(`http://127.0.0.1:8000/api/candidate/${candidate.id}?_method=PUT`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: { 'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}` },
       });
       onSuccess();
       onClose();

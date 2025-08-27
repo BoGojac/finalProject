@@ -38,6 +38,8 @@ import PollingStationPageCards from '../component/ui/PollingStationPageCard';
 import VoterList from '../component/ListOfVoters';
 import VoterPageCards from '../component/ui/VotersPageCards';
 import VoteCasting from '../component/VoteCasting';
+import TermsOfService from '../component/TermsOfService';
+import PrivacyPolicy from '../component/PrivacyPolicy';
 
 const RoutingPages = () => {
   return (
@@ -45,6 +47,10 @@ const RoutingPages = () => {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
+
+        {/* Public Pages */}
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-of-service" element={<TermsOfService />} />
 
         {/* Admin Routes */}
         <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
@@ -70,7 +76,8 @@ const RoutingPages = () => {
             <Route path="set-voting-date" element={<SetVotingDate />} />
             <Route path="override-voting" element={<OverrideVoting />} />
 			      <Route path="view-voters" element={<VoterList />} />
-			      <Route path="view-candidates" element={<CandidateList />} />			
+			      <Route path="view-candidates" element={<CandidateList />} />
+            <Route path="result" element={<ServiceUnavailable />} />			
             <Route path="view-override-history" element={<OverrideHistory />} />
             <Route path="profile" element={<UserProfile />} />
           </Route>
@@ -82,6 +89,7 @@ const RoutingPages = () => {
             <Route index element={<CandidatesPageCards />} />
             <Route path="complain" element={<ComplainForm />} />
             <Route path="profile" element={<UserProfile />} />
+            <Route path="result" element={<ServiceUnavailable />} />
           </Route>
         </Route>
 
@@ -90,8 +98,9 @@ const RoutingPages = () => {
           <Route path="/ConstituencyManagers" element={<Layout><ConstituencyPage /></Layout>}>
             <Route index element={<ConstituencyPageCards />} />
             <Route path="register-candidate" element={<CandidateList />} />
-			<Route path="view-voters" element={<VoterList />} />
+			      <Route path="view-voters" element={<VoterList />} />
             <Route path="profile" element={<UserProfile />} />
+            <Route path="result" element={<ServiceUnavailable />} />
           </Route>
         </Route>
 
@@ -100,8 +109,9 @@ const RoutingPages = () => {
           <Route path="/PollingStation" element={<Layout><PollingStationPage /></Layout>}>
             <Route index element={<PollingStationPageCards />} />
             <Route path="register-voter" element={<VoterList />} />
-			<Route path="view-candidate" element={<CandidateList />} />
+			      <Route path="view-candidate" element={<ServiceUnavailable />} />
             <Route path="profile" element={<UserProfile />} />
+            <Route path="result" element={<ServiceUnavailable />} />
           </Route>
         </Route>
 
@@ -110,9 +120,10 @@ const RoutingPages = () => {
           <Route path="/VotersPage" element={<Layout><VotersPage /></Layout>}>
             <Route index element={<VoterPageCards />} />
             <Route path="vote" element={<VoteCasting />} />
-            <Route path="view-candidate" element={<CandidateList />} />
-			<Route path="view-voters" element={<VoterList />} />
+            <Route path="view-candidate" element={<ServiceUnavailable />} />
+			      <Route path="view-voters" element={<ServiceUnavailable />} />
             <Route path="profile" element={<UserProfile />} />
+            <Route path="result" element={<ServiceUnavailable />} />
           </Route>
         </Route>
       </Routes>

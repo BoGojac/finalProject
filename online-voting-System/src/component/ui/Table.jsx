@@ -23,16 +23,19 @@ const DataTable = ({
   return (
     <div className="relative">
       <div className="p-6 bg-white rounded-lg shadow-md">
-        <div className="flex justify-between items-center mb-6">
+       <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-semibold text-gray-800">{title}</h2>
-          <button
-            onClick={onAdd}
-            className="px-4 py-2 rounded-md bg-[#6B4AA0] text-white hover:bg-[#5a3b91] transition-colors shadow-sm flex items-center gap-2"
-          >
-            <AddButtonIcon className="h-5 w-5" />
-            {addButtonText}
-          </button>
+          {onAdd && AddButtonIcon && addButtonText && (
+            <button
+              onClick={onAdd}
+              className="px-4 py-2 rounded-md bg-[#6B4AA0] text-white hover:bg-[#5a3b91] transition-colors shadow-sm flex items-center gap-2"
+            >
+              <AddButtonIcon className="h-5 w-5" />
+              {addButtonText}
+            </button>
+          )}
         </div>
+
 
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white border border-gray-200 rounded-lg overflow-hidden">
@@ -108,7 +111,7 @@ DataTable.propTypes = {
   data: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-      status: PropTypes.string, // Add status to propTypes
+      status: PropTypes.string,
     })
   ).isRequired,
   columns: PropTypes.arrayOf(
@@ -118,13 +121,13 @@ DataTable.propTypes = {
       render: PropTypes.func,
     })
   ).isRequired,
-  onDelete: PropTypes.func.isRequired,
   onEdit: PropTypes.func.isRequired,
-  addButtonText: PropTypes.string.isRequired,
-  addButtonIcon: PropTypes.elementType.isRequired,
-  onAdd: PropTypes.func.isRequired,
-  onToggleStatus: PropTypes.func, // Make this optional
-  renderActions: PropTypes.func, 
+  addButtonText: PropTypes.string,        // 🔹 optional now
+  addButtonIcon: PropTypes.elementType,   // 🔹 optional now
+  onAdd: PropTypes.func,                  // 🔹 optional now
+  onToggleStatus: PropTypes.func,
+  renderActions: PropTypes.func,
 };
+ 
 
 export default DataTable;

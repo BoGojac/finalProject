@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import axios from 'axios';
+import useAuthStore from './authStore';
 
 const useCandidateStore = create((set, get) => ({
   candidates: [],
@@ -9,8 +10,11 @@ const useCandidateStore = create((set, get) => ({
   isEditFormOpen: false,
   
   fetchCandidates: async (page = 1) => {
+     const { token } = useAuthStore.getState();
       try {
-        const res = await axios.get(`http://127.0.0.1:8000/api/candidate?page=${page}`);
+        const res = await axios.get(`http://127.0.0.1:8000/api/candidate?page=${page}`, {
+        headers: { Authorization: `Bearer ${token}` } // include token
+      });
         const data = res.data;
 
         set({
@@ -38,11 +42,14 @@ const useCandidateStore = create((set, get) => ({
   closeEditForm: () => set({ isEditFormOpen: false, selectedCandidate: null }),
 
   toggleStatus: async (userId, currentStatus) => {
+     const { token } = useAuthStore.getState();
     try {
       const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
 
       await axios.patch(`http://127.0.0.1:8000/api/user/status/${userId}`, {
         status: newStatus,
+      }, {
+        headers: { Authorization: `Bearer ${token}` } // include token
       });
 
       // Refresh candidates so updated user status reflects

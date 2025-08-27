@@ -6,6 +6,7 @@ import axios from 'axios';
 import { useEffect } from 'react';
 import { z } from 'zod';
 import Modal from './ui/FormModal';
+import useAuthStore from '../store/authStore';
  
 // Zod schema
 const editVoterSchema = z.object({
@@ -95,37 +96,10 @@ const EditVoterForm = ({ isOpen, onClose, onSuccess, voter }) => {
   }, [voter, reset]);
 
 
-//     if (!voter) return;
 
-//     const formData = new FormData();
-//     formData.append('user_id', voter.user_id);
-//     formData.append('polling_station_id', voter.polling_station_id);
-//     formData.append('first_name', data.first_name);
-//     formData.append('middle_name', data.middle_name || '');
-//     formData.append('last_name', data.last_name);
-//     formData.append('gender', data.gender);
-//     formData.append('birth_date', data.birth_date);
-//     formData.append('disability', data.disability);
-//     formData.append('disability_type', data.disability === 'Other' ? data.disability_type || '' : '');
-//     formData.append('residence_duration', data.residence_duration);
-//     formData.append('residence_unit', data.residence_unit);
-//     formData.append('home_number', data.home_number || '');
-
-//     try {
-//       await axios.put(`http://127.0.0.1:8000/api/voter/${voter.id}`, formData, {
-//         headers: { 
-//             'Content-Type': 'multipart/form-data',
-//             // 'Accept': 'application-json',
-//          },
-//       });
-//       onSuccess();
-//       onClose();
-//     } catch (error) {
-//       console.error('Edit failed:', error.response?.data || error.message);
-//     }
-//   };
 
     const onSubmit = async (data) => {
+      const { token } = useAuthStore.getState();
     if (!voter) return;
 
     const payload = {
@@ -145,7 +119,9 @@ const EditVoterForm = ({ isOpen, onClose, onSuccess, voter }) => {
     console.log(payload)
 
     try {
-        await axios.put(`http://127.0.0.1:8000/api/voter/${voter.id}`, payload);
+        await axios.put(`http://127.0.0.1:8000/api/voter/${voter.id}`, payload, {
+        headers: { Authorization: `Bearer ${token}` } // include token
+      });
         onSuccess();
         onClose();
     } catch (error) {

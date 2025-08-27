@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Modal from './ui/FormModal';
 import useRegionConstituencyStore from '../store/regionConstituencyStore';
 import useVotingDateStore from '../store/votingDateStore';
+import useAuthStore from '../store/authStore';
 
 const pollingStationSchema = z.object({
   name: z.string().min(1, 'Polling station name is required'),
@@ -51,6 +52,7 @@ const CreatePollingStationForm = ({ isOpen, onClose, onSuccess }) => {
   };
 
   const onSubmit = async (data) => {
+    const { token } = useAuthStore.getState();
     try {
       const formData = new FormData();
       formData.append('name', data.name);
@@ -62,7 +64,8 @@ const CreatePollingStationForm = ({ isOpen, onClose, onSuccess }) => {
       const response = await axios.post('http://127.0.0.1:8000/api/pollingstation', formData, {
         headers: {
           Accept: 'application/json',
-          'Content-Type': 'multipart/form-data'
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`
         }
       });
 

@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { z } from "zod";
 import { Calendar, AlertCircle, Pencil } from "lucide-react";
 import axios from "axios";
+import useAuthStore from '../store/authStore';
 
 // Validation schema
 const votingSchema = z.object({
@@ -68,7 +69,10 @@ const SetVotingDate = () => {
 
   // Fetch voting dates on mount
   useEffect(() => {
-      axios.get("http://localhost:8000/api/voting-date")
+     const { token } = useAuthStore.getState();
+      axios.get("http://localhost:8000/api/voting-date", {
+        headers: { Authorization: `Bearer ${token}` } // include token
+      })
         .then((res) => {
           const filtered = res.data.data.filter((v) => new Date(v.voting_date) >= new Date());
           setVotingList(filtered);
@@ -93,6 +97,7 @@ const SetVotingDate = () => {
 
   // Form submit handler
   const onSubmit = async (data) => {
+    const { token } = useAuthStore.getState();
     clearMessages();
 
     const isEdit = !!editingVoting;
@@ -105,14 +110,16 @@ const SetVotingDate = () => {
       const res = await axios({
         method,
         url,
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        headers: { "Content-Type": "application/json", Accept: "application/json", Authorization: `Bearer ${token}` },
         data,
       });
 
       setSuccessMessage(res.data.message);
 
       // Refresh voting list after update/create
-      const updatedListRes = await axios.get("http://localhost:8000/api/voting-date");
+      const updatedListRes = await axios.get("http://localhost:8000/api/voting-date", {
+        headers: { Authorization: `Bearer ${token}` } // include token
+      });
       const filtered = updatedListRes.data.data.filter((v) => new Date(v.voting_date) >= new Date());
       setVotingList(filtered);
 

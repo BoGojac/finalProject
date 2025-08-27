@@ -1,6 +1,7 @@
 // src/store/constituencyStore.js
 import { create } from 'zustand';
 import axios from 'axios';
+import useAuthStore from './authStore';
 
 const useConstituencyStore = create((set, get) => ({ 
   constituencies: [],
@@ -14,8 +15,11 @@ const useConstituencyStore = create((set, get) => ({
   },
 
   fetchConstituencies: async (page = 1) => {
+     const { token } = useAuthStore.getState();
     try {
-      const res = await axios.get(`http://127.0.0.1:8000/api/constituency?page=${page}`);
+      const res = await axios.get(`http://127.0.0.1:8000/api/constituency?page=${page}`, {
+        headers: { Authorization: `Bearer ${token}` } // include token
+      });
       const data = res.data.data;
 
       const constituenciesWithDetails = data.data.map((c) => ({
@@ -67,6 +71,7 @@ const useConstituencyStore = create((set, get) => ({
     }),
 
   confirmDeleteConstituency: async () => {
+     const { token } = useAuthStore.getState();
     const { deleteModal, fetchConstituencies } = get(); // ✅ Now `get` is defined
     const id = deleteModal.constituency?.id;
 
@@ -77,7 +82,9 @@ const useConstituencyStore = create((set, get) => ({
     }));
 
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/constituency/${id}`);
+      await axios.delete(`http://127.0.0.1:8000/api/constituency/${id}`, {
+        headers: { Authorization: `Bearer ${token}` } // include token
+      });
       fetchConstituencies();
     } catch (err) {
       console.error('Delete failed:', err);

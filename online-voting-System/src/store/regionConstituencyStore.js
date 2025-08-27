@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import axios from 'axios';
+import useAuthStore from './authStore';
 
 const useRegionConstituencyStore = create((set) => ({
   regions: [],
@@ -8,10 +9,15 @@ const useRegionConstituencyStore = create((set) => ({
   filteredConstituencies: [],
 
   fetchRegionsAndConstituencies: async () => {
+     const { token } = useAuthStore.getState();
     try {
       const [regionRes, constRes] = await Promise.all([
-        axios.get('http://127.0.0.1:8000/api/regions'),
-        axios.get('http://127.0.0.1:8000/api/constituency')
+        axios.get('http://127.0.0.1:8000/api/regions', {
+        headers: { Authorization: `Bearer ${token}` } // include token
+      }),
+        axios.get('http://127.0.0.1:8000/api/constituency', {
+        headers: { Authorization: `Bearer ${token}` } // include token
+      })
       ]);
 
       // Log both responses to confirm structure

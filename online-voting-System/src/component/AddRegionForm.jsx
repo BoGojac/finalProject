@@ -7,6 +7,7 @@ import PropTypes from 'prop-types';
 import axios from 'axios';
 import Modal from './ui/FormModal';
 import useVotingDateStore from '../store/votingDateStore';
+import useAuthStore from '../store/authStore';
 
 const regionSchema = z.object({
   name: z.string().min(1, 'Region name is required'),
@@ -34,6 +35,7 @@ const AddRegionForm = ({ isOpen, onClose, onSuccess }) => {
 
 
   const onSubmit = async (data) => {
+     const { token } = useAuthStore.getState();
     const formData = new FormData();
     formData.append('name', data.name);
     formData.append('abbreviation', data.abbreviation); 
@@ -45,7 +47,8 @@ const AddRegionForm = ({ isOpen, onClose, onSuccess }) => {
         {
           headers: {
             'Accept': 'application/json',
-            'Content-Type': 'multipart/form-data'
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`
           }
         }
       );

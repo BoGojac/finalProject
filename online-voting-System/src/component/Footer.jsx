@@ -1,4 +1,5 @@
 // import React from 'react';
+import { Link } from "react-router-dom";
 import { FaTelegramPlane, FaFacebookF, FaTwitter, FaWhatsapp, FaLinkedin, FaEnvelope, FaPhone } from "react-icons/fa";
 
 const Footer = () => {
@@ -43,7 +44,7 @@ const Footer = () => {
                             
                             {/* Email */}
                             <p className="text-white text-sm flex items-center space-x-2">
-                                <FaEnvelope /> <span>+123 456 7890</span>
+                                <FaEnvelope /> <span>example@gmail.com</span>
                             </p>
                             
                             {/* Phone */}
@@ -54,8 +55,8 @@ const Footer = () => {
 
                         {/* Privacy Policy & Terms of Service */}
                         <div className="flex flex-col md:flex-row items-center md:items-start space-y-3 md:space-y-0 md:space-x-6">
-                            <a href="#" className="text-white/80 hover:text-white transition-colors">Privacy Policy</a>
-                            <a href="#" className="text-white/80 hover:text-white transition-colors">Terms of Service</a>
+                            <Link to="/privacy-policy" className="text-white/80 hover:text-white transition-colors">Privacy Policy</Link>
+                            <Link to="/terms-of-service" className="text-white/80 hover:text-white transition-colors">Terms of Service</Link>
                         </div>
 
                     </div>

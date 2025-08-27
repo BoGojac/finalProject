@@ -9,6 +9,7 @@ import useRegionStore from '../store/regionStore';
 import useUIStore from '../store/uiStore';
 import useConstituencyStore from '../store/constituencyStore';
 import usePollingStationStore from '../store/pollingStationStore';
+import useAuthStore from '../store/authStore';
 
 const userSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -92,6 +93,7 @@ const EditUserForm = ({ isOpen, onClose, user, onSuccess }) => {
 
 
   const onSubmit = async (data) => {
+    const { token } = useAuthStore.getState();
     try {
       const payload = {
         email: data.email,
@@ -113,7 +115,9 @@ const EditUserForm = ({ isOpen, onClose, user, onSuccess }) => {
 
       const response = await axios.put(
         `http://127.0.0.1:8000/api/user/${user.id}`,
-        payload
+        payload, {
+        headers: { Authorization: `Bearer ${token}` } // include token
+      }
       );
 
       if (response?.data?.message) {

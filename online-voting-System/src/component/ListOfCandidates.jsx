@@ -6,8 +6,10 @@ import CreateCandidateForm from './RegisterCandidatedForm';
 import EditCandidateForm from './EditCandidateForm';
 import useCandidateStore from '../store/candidateStore';
 
+
 const CandidateList = () => {
   const location = useLocation(); 
+  const showAddButton = location.pathname === "/ConstituencyManagers/register-candidate";
   const {
     candidates,
     pagination,
@@ -79,47 +81,47 @@ const CandidateList = () => {
 
   ];
 
-  // Hide Add button if route is "/BoardManagers/view-candidates"
-  const showAddButton = location.pathname !== '/BoardManagers/view-candidates';
 
   return (
     <div className="p-4">
       <DataTable
-          title="Candidate Management"
-          data={candidates}
-          columns={columns}
-          onEdit={(id) => {
-            const item = candidates.find((c) => c.id === id);
-            openEditForm(item);
-          }}
-         addButtonText={showAddButton ? "Register New Candidate" : undefined}
-         addButtonIcon={showAddButton ? Plus : undefined}
-         onAdd={showAddButton ? openAddForm : undefined}
-          onToggleStatus={(id, status) => toggleStatus(id, status)}
-          renderActions={(item) => (
-            <>
+        title="Candidate Management"
+        data={candidates}
+        columns={columns}
+        onEdit={(id) => {
+          const item = candidates.find((c) => c.id === id);
+          openEditForm(item);
+        }}
+        {...(showAddButton && {
+          addButtonText: "Register New Candidate",
+          addButtonIcon: Plus,
+          onAdd: openAddForm,
+        })}
+        onToggleStatus={(id, status) => toggleStatus(id, status)}
+        renderActions={(item) => (
+          <>
+            <button
+              onClick={() => openEditForm(item)}
+              className="px-3 py-1 bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200 text-xs flex items-center gap-1"
+            >
+              <Edit2 className="h-3 w-3" /> Edit
+            </button>
+            {item.user && (
               <button
-                onClick={() => openEditForm(item)}
-                className="px-3 py-1 bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200 text-xs flex items-center gap-1"
+                onClick={() => toggleStatus(item.user.id, item.user.status)}
+                className={`px-3 py-1 rounded-md text-xs flex items-center gap-1 ${
+                  item.user.status === "active"
+                    ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
+                    : "bg-green-100 text-green-800 hover:bg-green-200"
+                }`}
               >
-                <Edit2 className="h-3 w-3" /> Edit
+                {item.user.status === "active" ? "Deactivate" : "Activate"}
               </button>
-
-              {item.user && (
-                <button
-                  onClick={() => toggleStatus(item.user.id, item.user.status)}
-                  className={`px-3 py-1 rounded-md text-xs flex items-center gap-1 ${
-                    item.user.status === 'active'
-                      ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
-                      : 'bg-green-100 text-green-800 hover:bg-green-200'
-                  }`}
-                >
-                  {item.user.status === 'active' ? 'Deactivate' : 'Activate'}
-                </button>
-              )}
-            </>
-          )}
+            )}
+          </>
+        )}
       />
+
 
       
       {pagination && (

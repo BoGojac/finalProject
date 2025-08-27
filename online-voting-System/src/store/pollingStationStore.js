@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import axios from 'axios';
+ import useAuthStore from './authStore';
 
 const usePollingStationStore = create((set, get) => ({
   pollingStations: [],
@@ -15,13 +16,16 @@ const usePollingStationStore = create((set, get) => ({
   },
 
   fetchPollingStations: async (constituency_id = null, page = 1) => {
+     const { token } = useAuthStore.getState();
     try {
       let url = `http://127.0.0.1:8000/api/pollingstation?page=${page}`;
       if (constituency_id) {
         url = `http://127.0.0.1:8000/api/constituency/${constituency_id}/pollingstations?page=${page}`;
       }
 
-      const response = await axios.get(url);
+      const response = await axios.get(url, {
+        headers: { Authorization: `Bearer ${token}` } // include token
+      });
       const result = response.data.data;
       set({
         pollingStations: result,
@@ -67,6 +71,7 @@ const usePollingStationStore = create((set, get) => ({
   }),
 
   confirmDeletePollingStation: async () => {
+     const { token } = useAuthStore.getState();
     const { deleteModal, fetchPollingStations, closeDeleteModal } = get();
     const id = deleteModal.pollingStation?.id;
     if (!id) return;
@@ -79,7 +84,9 @@ const usePollingStationStore = create((set, get) => ({
         }
       }));
 
-      await axios.delete(`http://127.0.0.1:8000/api/pollingstation/${id}`);
+      await axios.delete(`http://127.0.0.1:8000/api/pollingstation/${id}`, {
+        headers: { Authorization: `Bearer ${token}` } // include token
+      });
       await fetchPollingStations();
       closeDeleteModal();
     } catch (error) {

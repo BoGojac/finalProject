@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import axios from 'axios';
 import PropTypes from 'prop-types';
+import useAuthStore from '../store/authStore';
 
 // Validation schema
 const constituencySchema = z.object({
@@ -45,6 +46,7 @@ const EditConstituencyForm = ({ isOpen, onClose, onSuccess, constituency }) => {
   }, [constituency, setValue]);
 
   const onSubmit = async (data) => {
+    const { token } = useAuthStore.getState();
     try {
       await axios.put(`http://127.0.0.1:8000/api/constituency/${constituency.id}`, {
         ...data,
@@ -53,7 +55,8 @@ const EditConstituencyForm = ({ isOpen, onClose, onSuccess, constituency }) => {
       }, {
         headers: {
           Accept: 'application/json',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
         }
       });
 

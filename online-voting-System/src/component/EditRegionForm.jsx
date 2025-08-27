@@ -6,6 +6,7 @@ import { z } from 'zod';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import Modal from './ui/FormModal';
+import useAuthStore from '../store/authStore';
 
 const regionSchema = z.object({
   name: z.string().min(1, 'Region name is required'),
@@ -32,7 +33,8 @@ const EditRegionForm = ({ isOpen, onClose, onSuccess, region }) => {
   }, [region, setValue]);
 
   const onSubmit = async (data) => {
-    // You can use FormData or just send JSON directly
+    const { token } = useAuthStore.getState();
+    
     const payload = {
       name: data.name,
       abbreviation: data.abbreviation, 
@@ -46,6 +48,7 @@ const EditRegionForm = ({ isOpen, onClose, onSuccess, region }) => {
         {
           headers: {
             Accept: 'application/json',
+            Authorization: `Bearer ${token}`
           },
         }
       );

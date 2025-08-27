@@ -6,6 +6,7 @@ import { z } from 'zod';
 import usePartyStore from '../store/partyStore';
 import useRegionStore from '../store/regionStore';
 import axios from 'axios';
+import useAuthStore from '../store/authStore';
 
 const partySchema = z.object({
   name: z.string().min(1, 'Party name is required'),
@@ -64,6 +65,7 @@ const EditPartyForm = () => {
   }, [selectedParty, reset]);
 
   const onSubmit = async (data) => {
+    const { token } = useAuthStore.getState();
     try {
       clearError();
 
@@ -100,6 +102,7 @@ const EditPartyForm = () => {
           headers: { 
             'Content-Type': 'multipart/form-data',
             'Accept' : 'application-json',
+            Authorization: `Bearer ${token}`
            },
         }
       );

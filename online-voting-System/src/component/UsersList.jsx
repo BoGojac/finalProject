@@ -5,6 +5,8 @@ import DataTable from '../component/ui/Table';
 import CreateUserForm from './CreateUserForm';
 import EditUserForm from './EditUserForm'; 
 import useUserStore from '../store/userStore.js'; 
+import useAuthStore from '../store/authStore';
+
 const UsersList = () => {
   const {
     users,
@@ -50,11 +52,14 @@ const UsersList = () => {
   ];
 
  const handleToggleStatus = async (id, currentStatus) => {
+    const { token } = useAuthStore.getState();
     try {
       const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
 
       await axios.patch(`http://127.0.0.1:8000/api/user/status/${id}`, {
         status: newStatus, // send status here
+      }, {
+        headers: { Authorization: `Bearer ${token}` } // include token
       });
 
       fetchUsers();
